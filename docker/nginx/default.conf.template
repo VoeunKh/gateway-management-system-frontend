@@ -1,5 +1,12 @@
 # Rendered by the nginx image's entrypoint (envsubst): ${API_UPSTREAM} and
 # ${CLIENT_MAX_BODY_SIZE} are filled in; nginx's own $variables are left alone.
+# Behind a TLS-terminating proxy, keep the scheme it reports (https) instead of this
+# container's own (http), so the backend sees how the browser really connected.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $http_x_forwarded_proto;
+    ''      $scheme;
+}
+
 server {
     listen 8080;
     server_name _;
@@ -27,7 +34,7 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
         # Firmware images are uploaded through here (UI-10).
         client_max_body_size ${CLIENT_MAX_BODY_SIZE};
         proxy_request_buffering off;
