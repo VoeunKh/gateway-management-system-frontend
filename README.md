@@ -4,8 +4,29 @@ Frontend for the Gateway Fleet Management System v1 MVP: ~300 OpenWrt LTE gatewa
 (5 models), on-prem backend, existing EMQX. Built from the approved sample console.
 Go-live 2026-10-20.
 
-Lives in the backend repo under `web/`, so an endpoint, the OpenAPI spec and the screen
-that uses it change in one merge request.
+This repository holds the console on its own. The backend's OpenAPI spec is vendored at
+`api/openapi.yaml`; update that copy in the same pull request as the screen that needs it.
+
+## Development
+
+Node 22 (see `.nvmrc`). Browser targets: last 2 versions of Chrome, Edge, Firefox, Safari.
+
+```sh
+npm ci
+npm run dev        # http://localhost:5173, /api proxied to the backend on :8080
+npm run lint       # ESLint + Prettier check
+npm run typecheck
+npm test           # Vitest + Testing Library + MSW (npm run coverage for coverage)
+npm run build
+npm run size       # blocking: fails above the budgets below (run after build)
+npm run gen:api    # api/openapi.yaml -> src/api/types.gen.ts
+npm run e2e        # Playwright against the production build
+```
+
+CI (`.github/workflows/web.yml`) runs lint, typecheck, test, build and size on every push
+to `main` and every pull request, skipping docs-only changes.
+
+No new dependencies beyond the fixed stack below.
 
 | File | What it is |
 | --- | --- |

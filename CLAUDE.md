@@ -10,13 +10,13 @@ TanStack Query v5 (server data), zod (parsing), plain CSS custom properties,
 inline SVG for charts and icons, Vitest + Testing Library + MSW, Playwright.
 
 ## Layout
-src/{api,auth,features,ui,lib,styles}, tests/{msw,e2e}. Features: overview, devices,
+src/{app,api,auth,features,ui,lib,styles}, tests/{msw,e2e}. Features: overview, devices,
 config, firmware, alerts, users.
 
 ## Commands
 npm run dev | npm run build | npm test | npm run lint | npm run typecheck
 npm run size      # size-limit, blocking
-npm run gen:api   # openapi-typescript from ../api/openapi.yaml into src/api/types.gen.ts
+npm run gen:api   # openapi-typescript from api/openapi.yaml (vendored spec) into src/api/types.gen.ts
 npm run e2e       # Playwright
 
 ## Rules
