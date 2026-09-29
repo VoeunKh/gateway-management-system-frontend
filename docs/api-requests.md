@@ -43,12 +43,16 @@ Phase 2 (overview and remote actions) is due first; 1 and 2 unblock it.
 active rollouts and open alerts. The console fills the rest in itself:
 
 - the fleet board (one square per gateway) and the drift count come from `GET /devices`,
-  two pages of 200 polled every 60 s;
-- the rollout and alert panels call `GET /rollouts?state=active` and
-  `GET /alerts?state=open&limit=5` (5 and 6), only while the overview counts any.
+  two pages of 200, polled every 4 minutes (the header counts still refresh every 30 s);
+- the rollout panel calls `GET /rollouts?state=active` every 2 minutes, only while the
+  overview counts any (the Firmware page polls a live rollout every 5 s);
+- the alert panel and the rail badge share one `GET /alerts?state=open&limit=200`, once a
+  minute (6 and 8 in the list below).
 
-Idle, that is 4 requests a minute while nothing is active, the card's budget. Once rollouts
-and alerts exist it is 8. Two small additions would bring it back to 2:
+Measured in a browser, idle on the overview with rollouts and alerts present: 16 requests
+in 4 minutes, so **4 a minute**, the card's limit, but only by polling the board and the
+rollout panel slowly (before that it was 7). Two small additions would let it poll them
+at the normal pace and bring it down to 2:
 
 ```yaml
 Overview, extra fields:

@@ -40,6 +40,6 @@ export function useActiveRollouts(count: number) {
     queryKey: ['rollouts', 'active'],
     queryFn: () => listRollouts({ state: 'active' }),
     enabled: count > 0,
-    refetchInterval: POLL_MS.overview,
+    refetchInterval: POLL_MS.rolloutsSummary,
   });
 }
