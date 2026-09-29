@@ -18,6 +18,10 @@ export interface MockDb {
   /** Per-gateway events and jobs, newest first; seeded on first request. */
   history: Map<string, Schemas['HistoryEntry'][]>;
   jobs: Schemas['Job'][];
+  /** Config pushes still being applied by gateways. */
+  pushes: { model: string; version: number; at: number }[];
+  /** Gap between gateways applying a push, so drift falls gradually. */
+  pushStepMs: number;
   /** Action types that fail when started, so tests can see the error path. */
   failActions: Set<Schemas['JobType']>;
   /** Newest first. */
@@ -57,6 +61,8 @@ function fresh(): MockDb {
     rollouts: buildRollouts(devices),
     history: new Map(),
     jobs: [],
+    pushes: [],
+    pushStepMs: 400,
     failActions: new Set(),
     alerts: buildAlerts(devices),
     tokens: new Map(),

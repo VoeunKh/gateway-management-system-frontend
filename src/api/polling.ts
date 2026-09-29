@@ -4,6 +4,8 @@ export const POLL_MS = {
   rollout: 5_000,
   job: 3_000,
   overview: 30_000,
+  /** Sync counts on the config page for a minute after a push, while gateways apply it. */
+  push: 3_000,
   /** The overview's fleet board: every gateway, two pages of 200 at most. */
   board: 60_000,
   alerts: 30_000,

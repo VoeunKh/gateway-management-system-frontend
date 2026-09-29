@@ -270,6 +270,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/models/{id}/configs/{v}/push/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Who a push of this version would reach, before anyone confirms */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["ModelId"];
+                    v: components["parameters"]["ConfigVersionNumber"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description How many gateways would get the job and how many of them are offline */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PushPreview"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/models/{id}/configs/{v}/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make this version the model's target and queue it for every gateway (release engineer)
+         * @description Afterwards target_cfg_version is {v} on the model's devices, so drift updates. Offline gateways take it when they reconnect.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["ModelId"];
+                    v: components["parameters"]["ConfigVersionNumber"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Accepted; one job per gateway */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PushResult"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/alerts/{id}/ack": {
         parameters: {
             query?: never;
@@ -365,6 +451,15 @@ export interface components {
             url: string;
             /** Format: date-time */
             expires_at: string;
+        };
+        PushPreview: {
+            /** @description Active gateways of the model that would get the job */
+            gateways: number;
+            /** @description How many of those are offline right now */
+            offline: number;
+        };
+        PushResult: {
+            jobs: number;
         };
         /** @enum {string} */
         RolloutState: "running" | "soaking" | "paused" | "completed" | "aborted";
@@ -472,6 +567,8 @@ export interface components {
         };
     };
     parameters: {
+        ModelId: string;
+        ConfigVersionNumber: number;
         JobId: string;
     };
     requestBodies: never;

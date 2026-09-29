@@ -6,6 +6,7 @@ import {
   listDevices,
 } from '@/api/endpoints';
 import type { Schemas } from '@/api/endpoints';
+import { POLL_MS } from '@/api/polling';
 
 /** Versions of a model's config, newest first. */
 export function useConfigVersions(modelId: string | undefined) {
@@ -59,10 +60,11 @@ export function summarizeFleet(devices: Schemas['Device'][]): ModelFleet {
  * Target version and sync counts for one model. The API has no summary endpoint, so this
  * pages through the model's devices (about 60 per model, one or two requests).
  */
-export function useModelFleet(modelId: string | undefined) {
+export function useModelFleet(modelId: string | undefined, settling = false) {
   return useQuery({
     queryKey: ['model-fleet', modelId],
     enabled: Boolean(modelId),
+    refetchInterval: settling ? POLL_MS.push : false,
     queryFn: async ({ signal }) => {
       const devices: Schemas['Device'][] = [];
       let cursor: string | undefined;

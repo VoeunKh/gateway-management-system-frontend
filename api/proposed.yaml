@@ -168,6 +168,49 @@ paths:
               schema:
                 $ref: './openapi.yaml#/components/schemas/Error'
 
+  /models/{id}/configs/{v}/push/preview:
+    post:
+      tags: [configs]
+      summary: Who a push of this version would reach, before anyone confirms
+      parameters:
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ConfigVersionNumber'
+      responses:
+        '200':
+          description: How many gateways would get the job and how many of them are offline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushPreview'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /models/{id}/configs/{v}/push:
+    post:
+      tags: [configs]
+      summary: Make this version the model's target and queue it for every gateway (release engineer)
+      description: >
+        Afterwards target_cfg_version is {v} on the model's devices, so drift updates.
+        Offline gateways take it when they reconnect.
+      parameters:
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ConfigVersionNumber'
+      responses:
+        '202':
+          description: Accepted; one job per gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushResult'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
   /alerts/{id}/ack:
     post:
       tags: [alerts]
@@ -196,6 +239,18 @@ paths:
 
 components:
   parameters:
+    ModelId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ConfigVersionNumber:
+      name: v
+      in: path
+      required: true
+      schema:
+        type: integer
     JobId:
       name: id
       in: path
@@ -307,6 +362,24 @@ components:
           type: string
           format: date-time
       required: [url, expires_at]
+
+    PushPreview:
+      type: object
+      properties:
+        gateways:
+          type: integer
+          description: Active gateways of the model that would get the job
+        offline:
+          type: integer
+          description: How many of those are offline right now
+      required: [gateways, offline]
+
+    PushResult:
+      type: object
+      properties:
+        jobs:
+          type: integer
+      required: [jobs]
 
     RolloutState:
       type: string

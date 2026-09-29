@@ -3,6 +3,7 @@ import type { components } from '@/api/types.gen';
 import { denyUnless, errorJson } from '../auth';
 import { db } from '../db';
 import { toListItem } from '../fixtures/devices';
+import { settlePushes } from '../fixtures/pushes';
 import { api } from './api';
 
 type S = components['schemas'];
@@ -25,6 +26,7 @@ export const deviceHandlers = [
   http.get(api('/devices'), ({ request }) => {
     const denied = denyUnless(request);
     if (denied) return denied;
+    settlePushes();
     const params = new URL(request.url).searchParams;
     const health = params.get('health');
     const site = params.get('site');
@@ -58,6 +60,7 @@ export const deviceHandlers = [
   http.get<{ sn: string }>(api('/devices/:sn'), ({ request, params }) => {
     const denied = denyUnless(request);
     if (denied) return denied;
+    settlePushes();
     const device = db.devices.find((candidate) => candidate.sn === params.sn);
     return device ? HttpResponse.json(device) : errorJson(404, 'not_found', 'no such device');
   }),

@@ -63,6 +63,16 @@ export const diffConfigVersions = (modelId: string, version: number, against: nu
     query: { against },
   });
 
+// Config push (draft spec until the backend publishes it)
+export const previewConfigPush = (modelId: string, version: number) =>
+  request<Schemas['PushPreview']>(`/models/${seg(modelId)}/configs/${version}/push/preview`, {
+    method: 'POST',
+  });
+export const pushConfig = (modelId: string, version: number) =>
+  request<Schemas['PushResult']>(`/models/${seg(modelId)}/configs/${version}/push`, {
+    method: 'POST',
+  });
+
 // Packages and firmware manifests
 export const getFleetPackages = (modelId: string) =>
   request<Schemas['FleetPackages']>(`/models/${seg(modelId)}/packages`);

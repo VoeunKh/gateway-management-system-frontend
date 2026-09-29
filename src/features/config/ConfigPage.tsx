@@ -6,10 +6,12 @@ import { Can } from '@/auth/guards';
 import { useSession } from '@/auth/session';
 import { Button, EmptyState, ErrorState, ModelPicker, Skeleton, useToast } from '@/ui';
 import { FleetSummary } from './FleetSummary';
+import { PushDialog } from './PushDialog';
 import { VersionEditor } from './VersionEditor';
 import { VersionList } from './VersionList';
 import { VersionPanel } from './VersionPanel';
 import { useConfigVersions, useModelFleet } from './useConfig';
+import { useSettling } from './usePush';
 
 /** Model and version live in the URL, so a view can be shared. */
 function useSelection(defaultModel: string | undefined) {
@@ -41,10 +43,12 @@ export function ConfigPage() {
   const models = useModels();
   const { model, version, select } = useSelection(models.data?.[0]?.id);
   const versions = useConfigVersions(model);
-  const fleet = useModelFleet(model);
+  const [settling, startSettling] = useSettling();
+  const fleet = useModelFleet(model, settling);
   const authorName = useAuthorName();
   const toast = useToast();
   const [editing, setEditing] = useState(false);
+  const [pushing, setPushing] = useState(false);
 
   if (models.isPending)
     return (
@@ -71,6 +75,20 @@ export function ConfigPage() {
     <Can perm="config">
       <Button variant="primary" onClick={() => setEditing(true)} disabled={editing}>
         New version
+      </Button>
+    </Can>
+  );
+
+  const inSync =
+    fleet.data !== undefined && fleet.data.target === selected?.version && fleet.data.drifted === 0;
+  const pushButton = selected && (
+    <Can perm="config">
+      <Button
+        onClick={() => setPushing(true)}
+        disabled={inSync}
+        title={inSync ? `v${selected.version} is the target and every gateway has it` : undefined}
+      >
+        {`Push v${selected.version} to ${model}`}
       </Button>
     </Can>
   );
@@ -118,7 +136,12 @@ export function ConfigPage() {
     <section class="page">
       <header class="config-head">
         <h1>Configuration</h1>
-        {!editing && selected && newVersion}
+        {!editing && selected && (
+          <div class="config-head__actions">
+            {pushButton}
+            {newVersion}
+          </div>
+        )}
       </header>
       <ModelPicker
         models={models.data}
@@ -130,6 +153,15 @@ export function ConfigPage() {
       />
       <FleetSummary modelId={model} />
       {body}
+      {selected && (
+        <PushDialog
+          open={pushing}
+          modelId={model}
+          version={selected.version}
+          onClose={() => setPushing(false)}
+          onPushed={startSettling}
+        />
+      )}
     </section>
   );
 }
