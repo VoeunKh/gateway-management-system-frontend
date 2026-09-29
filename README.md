@@ -45,9 +45,13 @@ Production is a non-root nginx image (about 80 MB) with a read-only filesystem:
 - serves the bundle with `index.html` revalidated on every load and hashed `/assets/` cached for
   a year, gzip, and security headers including a strict Content-Security-Policy;
 - proxies `/api/` to `API_UPSTREAM` (`scheme://host:port`, default the Docker host on 8080), so
-  the refresh cookie stays same-origin; the name is resolved when the container starts, so run
-  `make prod-restart` if the backend's address changes;
+  the refresh cookie stays same-origin, passing on an outer proxy's `X-Forwarded-Proto`; the
+  name is resolved when the container starts, so run `make prod-restart` if the backend's
+  address changes;
 - `/healthz` for load balancers and the container health check.
+
+The full guide, covering how the image is built, every setting, deploying to a server, HTTPS,
+and troubleshooting, is [docs/docker.md](docs/docker.md).
 
 Behind a TLS-intercepting proxy, pass its CA to the npm install with
 `make prod-build BUILD_CA=/path/ca.crt` (a build secret, not stored in the image) and any extra
