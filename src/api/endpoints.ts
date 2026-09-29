@@ -1,0 +1,73 @@
+import { request } from './client';
+import type { components, paths } from './types.gen';
+
+// One typed function per endpoint the console uses. Hooks call these; nothing else does.
+export type Schemas = components['schemas'];
+export type DeviceQuery = NonNullable<paths['/devices']['get']['parameters']['query']>;
+
+const seg = encodeURIComponent;
+
+// Auth
+export const login = (body: Schemas['LoginRequest']) =>
+  request<Schemas['LoginResponse']>('/auth/login', { method: 'POST', json: body });
+export const logout = () => request<undefined>('/auth/logout', { method: 'POST' });
+export const getMe = () => request<Schemas['User']>('/auth/me');
+
+// Users
+export const listUsers = () => request<Schemas['User'][]>('/users');
+export const getUser = (id: string) => request<Schemas['User']>(`/users/${seg(id)}`);
+export const createUser = (body: Schemas['CreateUserRequest']) =>
+  request<Schemas['User']>('/users', { method: 'POST', json: body });
+export const updateUser = (id: string, body: Schemas['UpdateUserRequest']) =>
+  request<Schemas['User']>(`/users/${seg(id)}`, { method: 'PATCH', json: body });
+export const deleteUser = (id: string) =>
+  request<undefined>(`/users/${seg(id)}`, { method: 'DELETE' });
+
+// Models and sites
+export const listModels = () => request<Schemas['Model'][]>('/models');
+export const createModel = (body: Schemas['CreateModelRequest']) =>
+  request<Schemas['Model']>('/models', { method: 'POST', json: body });
+export const updateModel = (id: string, body: Schemas['UpdateModelRequest']) =>
+  request<Schemas['Model']>(`/models/${seg(id)}`, { method: 'PATCH', json: body });
+export const listSites = () => request<Schemas['Site'][]>('/sites');
+export const createSite = (body: Schemas['SiteRequest']) =>
+  request<Schemas['Site']>('/sites', { method: 'POST', json: body });
+export const updateSite = (id: string, body: Schemas['SiteRequest']) =>
+  request<Schemas['Site']>(`/sites/${seg(id)}`, { method: 'PATCH', json: body });
+
+// Config versions
+export const listConfigVersions = (modelId: string) =>
+  request<Schemas['ConfigVersion'][]>(`/models/${seg(modelId)}/configs`);
+export const getConfigVersion = (modelId: string, version: number) =>
+  request<Schemas['ConfigVersion']>(`/models/${seg(modelId)}/configs/${version}`);
+export const createConfigVersion = (modelId: string, body: Schemas['CreateConfigVersionRequest']) =>
+  request<Schemas['ConfigVersion']>(`/models/${seg(modelId)}/configs`, {
+    method: 'POST',
+    json: body,
+  });
+export const diffConfigVersions = (modelId: string, version: number, against: number) =>
+  request<Schemas['DiffOp'][]>(`/models/${seg(modelId)}/configs/${version}/diff`, {
+    query: { against },
+  });
+
+// Packages and firmware manifests
+export const getFleetPackages = (modelId: string) =>
+  request<Schemas['FleetPackages']>(`/models/${seg(modelId)}/packages`);
+export const getFirmwareManifest = (modelId: string, fwVersion: string) =>
+  request<Schemas['FirmwareManifest']>(
+    `/models/${seg(modelId)}/firmware/${seg(fwVersion)}/manifest`,
+  );
+export const recordFirmwareManifest = (modelId: string, fwVersion: string, manifest: string) =>
+  request<Schemas['FirmwareManifestCreated']>(
+    `/models/${seg(modelId)}/firmware/${seg(fwVersion)}/manifest`,
+    { method: 'POST', text: manifest },
+  );
+
+// Devices
+export const listDevices = (query: DeviceQuery = {}, signal?: AbortSignal) =>
+  request<Schemas['DeviceList']>('/devices', { query, signal });
+export const getDevice = (sn: string) => request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`);
+export const updateDevice = (sn: string, patch: Schemas['DevicePatch']) =>
+  request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`, { method: 'PATCH', json: patch });
+export const getRenderedConfig = (sn: string) =>
+  request<Schemas['RenderedConfig']>(`/devices/${seg(sn)}/config/rendered`);
