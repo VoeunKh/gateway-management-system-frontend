@@ -12,7 +12,7 @@ inline SVG for charts and icons, Vitest + Testing Library + MSW, Playwright.
 
 ## Layout
 src/{app,api,auth,features,ui,lib,styles}, tests/{msw,e2e}. Features: overview, devices,
-config, firmware, alerts, users.
+config, firmware, packages, alerts, users.
 
 ## Commands
 npm run dev | npm run build | npm test | npm run lint | npm run typecheck

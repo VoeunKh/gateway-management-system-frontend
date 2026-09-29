@@ -146,6 +146,7 @@ its gzipped size, and must keep the bundle under budget.
 
 - [ ] UI-09 Configuration: versions, diff, editor, push (all but push done; push waits for API)
 - [ ] UI-10 Firmware and rollouts
+- [x] Packages screen (from the sample console; read-only, on the published `/models/{id}/packages`)
 - [ ] UI-11 Alerts and users (users done; alerts wait for API)
 - [ ] UI-12 Playwright flows, accessibility, responsive, pilot fixes (flows for the built screens run nightly)
 
@@ -169,5 +170,5 @@ and error codes in go-live order: [docs/api-requests.md](docs/api-requests.md).
 
 ## Out of scope for v1
 
-Packages screen, MFA screen, audit log screen, API keys, multi-tenant views, maintenance
+MFA screen, audit log screen, API keys, multi-tenant views, maintenance
 windows, SSE live updates (polling instead), dashboards beyond the overview.

@@ -18,6 +18,18 @@ const SEVERITY: Record<Schemas['AlertSeverity'], Label> = {
   critical: { tone: 'danger', label: 'Critical' },
 };
 
+const PACKAGE: Record<Schemas['PackageStatus']['status'], Label> = {
+  ok: { tone: 'ok', label: 'Matches' },
+  drift: { tone: 'warn', label: 'Differs' },
+  not_in_manifest: { tone: 'neutral', label: 'Not in manifest' },
+  unknown: { tone: 'neutral', label: 'Unknown' },
+};
+
+export function PackageStatusBadge({ status }: { status: Schemas['PackageStatus']['status'] }) {
+  const { tone, label } = PACKAGE[status];
+  return <Badge tone={tone}>{label}</Badge>;
+}
+
 export function RolloutStateBadge({ state }: { state: Schemas['RolloutState'] }) {
   const { tone, label } = ROLLOUT[state];
   return <Badge tone={tone}>{label}</Badge>;

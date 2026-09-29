@@ -188,3 +188,43 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
+
+/* Model picker and summary line (config and packages) */
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  margin: 0 0 var(--space-3);
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.segmented__option {
+  position: relative;
+}
+.segmented__option input {
+  position: absolute;
+  opacity: 0;
+}
+.segmented__option span {
+  display: block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: calc(var(--radius-md) - 2px);
+  font-weight: 600;
+  cursor: pointer;
+}
+.segmented__option input:checked + span {
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.segmented__option input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+.fleet-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-4);
+}

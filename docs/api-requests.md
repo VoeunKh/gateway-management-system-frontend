@@ -29,6 +29,7 @@ conventions we rely on, both already used by the current spec:
 | 6 | Alerts | list, acknowledge, rules | UI-11, UI-05, shell badge | BE-10 |
 | 7 | Device detail extras | metrics history, events, a few fields | UI-07 | BE-03.x |
 | 8 | Small additions | list total, list temperature, user disable | UI-06, UI-11 | BE-03.2, BE-01.3 |
+| 9 | Update outdated packages | `POST /models/{id}/packages/{name}/upgrade` | Packages | BE-08 |
 
 Phase 2 (overview and remote actions) is due first; 1 and 2 unblock it.
 
@@ -164,6 +165,18 @@ HWInterface, extra fields:   name, link_up
 | `User.disabled` and `PATCH /users/{id} { disabled }` | Disable and enable users instead of deleting them (UI-11) |
 | `maximum: 200` on `limit` in `GET /devices` | The description says 200; the schema doesn't enforce it |
 | One pagination style: `DeviceList.next_cursor` absent vs `CursorPage.next_cursor: null` | `CursorPage` is defined but unused; pick one before more lists arrive |
+
+## 9. Update outdated packages (Packages screen)
+
+The Packages screen is built on the published `GET /models/{id}/packages` and is read-only.
+The sample console also has an **Update outdated** button per package. It needs an endpoint
+that asks the gateways to upgrade one package; the console would show it, admin-only, next
+to the package once it exists.
+
+```yaml
+POST /models/{id}/packages/{name}/upgrade   → 202 { jobs: 12 }   # gateways of the model that run an older version
+  403 (not admin), 404 (no such package for the model), 409 nothing_to_upgrade
+```
 
 ## How the console picks these up
 

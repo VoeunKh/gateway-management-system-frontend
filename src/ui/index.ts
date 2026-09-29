@@ -6,6 +6,7 @@ export * from './Field';
 export * from './HealthBadge';
 export * from './SelectField';
 export * from './icons';
+export * from './ModelPicker';
 export * from './Notice';
 export * from './Sparkline';
 export * from './states';

@@ -85,6 +85,8 @@ export const IconSliders = makeIcon(
   <path d="M5 6h8M17 6h2M5 12h2M11 12h8M5 18h10M19 18h0M15 4v4M9 10v4M17 16v4" />,
 );
 
+export const IconPackage = makeIcon(<path d="M12 3 4 7v10l8 4 8-4V7zM4 7l8 4 8-4M12 11v10" />);
+
 export const IconSignOut = makeIcon(
   <path d="M14 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h9" />,
 );
@@ -105,4 +107,5 @@ export const ICONS = {
   home: IconHome,
   sliders: IconSliders,
   signOut: IconSignOut,
+  package: IconPackage,
 } as const;
