@@ -15,6 +15,8 @@ export interface TableProps<Row> {
   columns: Column<Row>[];
   rows: Row[];
   rowKey: (row: Row) => string;
+  /** On phones, each row becomes a labelled card instead of scrolling sideways. */
+  stack?: boolean;
   /** Makes whole rows clickable; keep a real link in a cell for keyboard and new-tab use. */
   onRowClick?: (row: Row, event: MouseEvent) => void;
 }
@@ -22,6 +24,7 @@ export interface TableProps<Row> {
 export function Table<Row>({
   caption,
   hideCaption,
+  stack,
   columns,
   rows,
   rowKey,
@@ -29,7 +32,7 @@ export function Table<Row>({
 }: TableProps<Row>) {
   return (
     <div class="table-wrap">
-      <table class="table">
+      <table class={stack ? 'table table--stack' : 'table'}>
         <caption class={hideCaption ? 'sr-only' : undefined}>{caption}</caption>
         <thead>
           <tr>
@@ -48,7 +51,7 @@ export function Table<Row>({
               onClick={onRowClick ? (event) => onRowClick(row, event) : undefined}
             >
               {columns.map((col) => (
-                <td key={col.key} class={col.numeric ? 'num' : undefined}>
+                <td key={col.key} class={col.numeric ? 'num' : undefined} data-label={col.header}>
                   {col.cell(row)}
                 </td>
               ))}

@@ -25,6 +25,13 @@ paths:
           schema:
             type: string
             enum: [active, finished]
+        - name: sn
+          in: query
+          description: >
+            Only rollouts that include this gateway; each wave then lists just that
+            gateway, so the device page can show its own progress
+          schema:
+            type: string
       responses:
         '200':
           description: The rollouts
@@ -65,6 +72,360 @@ paths:
         '401':
           $ref: './openapi.yaml#/components/responses/Unauthorized'
 
+  /devices/{sn}/actions:
+    post:
+      tags: [jobs]
+      summary: Run a remote action on a gateway (admin)
+      parameters:
+        - name: sn
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '201':
+          description: The job that tracks the action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: action_pending (one of this type is already pending) or device_offline
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+
+  /jobs/{id}:
+    get:
+      tags: [jobs]
+      summary: A job, polled every 3 s until its state is final
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: The job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /jobs/{id}/cancel:
+    post:
+      tags: [jobs]
+      summary: Cancel a job that has not started (admin)
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: The cancelled job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './openapi.yaml#/components/responses/Conflict'
+
+  /jobs/{id}/logs:
+    get:
+      tags: [jobs]
+      summary: Download link for the archive a successful logs job uploaded
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: A short-lived /dl/{token} link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobLogs'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: The job did not succeed, or is not a logs job
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+
+  /models/{id}/configs/{v}/push/preview:
+    post:
+      tags: [configs]
+      summary: Who a push of this version would reach, before anyone confirms
+      parameters:
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ConfigVersionNumber'
+      responses:
+        '200':
+          description: How many gateways would get the job and how many of them are offline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushPreview'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /models/{id}/configs/{v}/push:
+    post:
+      tags: [configs]
+      summary: Make this version the model's target and queue it for every gateway (release engineer)
+      description: >
+        Afterwards target_cfg_version is {v} on the model's devices, so drift updates.
+        Offline gateways take it when they reconnect.
+      parameters:
+        - $ref: '#/components/parameters/ModelId'
+        - $ref: '#/components/parameters/ConfigVersionNumber'
+      responses:
+        '202':
+          description: Accepted; one job per gateway
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushResult'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /firmware:
+    get:
+      tags: [firmware]
+      summary: Firmware images, newest first
+      parameters:
+        - name: model
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FirmwareImage'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+    post:
+      tags: [firmware]
+      summary: Upload a signed image (release engineer)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                model_id:
+                  type: string
+                version:
+                  type: string
+                channel:
+                  type: string
+                  enum: [stable, beta]
+                image:
+                  type: string
+                  format: binary
+                signature:
+                  type: string
+                  format: binary
+                  description: The detached .sig made with the release key
+              required: [model_id, version, channel, image, signature]
+      responses:
+        '201':
+          description: Stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FirmwareImage'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '409':
+          description: version_exists
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+        '422':
+          description: signature_invalid, or a missing or malformed field (validation_failed)
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+
+  /firmware/{id}/block:
+    post:
+      tags: [firmware]
+      summary: Stop this image being picked for new rollouts (release engineer)
+      parameters:
+        - $ref: '#/components/parameters/FirmwareId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: The blocked image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FirmwareImage'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /firmware/{id}/unblock:
+    post:
+      tags: [firmware]
+      summary: Allow this image in rollouts again (release engineer)
+      parameters:
+        - $ref: '#/components/parameters/FirmwareId'
+      responses:
+        '200':
+          description: The image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FirmwareImage'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /rollouts/preview:
+    post:
+      tags: [rollouts]
+      summary: What a rollout would do, called as the form changes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RolloutRequest'
+      responses:
+        '200':
+          description: The plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RolloutPreview'
+        '422':
+          description: invalid_waves, invalid_threshold or firmware_blocked
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+
+  /rollouts/{id}:
+    get:
+      tags: [rollouts]
+      summary: One rollout with every gateway of every wave, polled every 5 s while live
+      parameters:
+        - $ref: '#/components/parameters/RolloutId'
+      responses:
+        '200':
+          description: The rollout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /rollouts/{id}/pause:
+    post:
+      tags: [rollouts]
+      summary: Pause a running or soaking rollout (release engineer)
+      parameters:
+        - $ref: '#/components/parameters/RolloutId'
+      responses:
+        '200':
+          description: The rollout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '409':
+          $ref: './openapi.yaml#/components/responses/Conflict'
+
+  /rollouts/{id}/resume:
+    post:
+      tags: [rollouts]
+      summary: Resume a paused rollout, accepting the failures so far (release engineer)
+      parameters:
+        - $ref: '#/components/parameters/RolloutId'
+      responses:
+        '200':
+          description: The rollout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '409':
+          $ref: './openapi.yaml#/components/responses/Conflict'
+
+  /rollouts/{id}/abort:
+    post:
+      tags: [rollouts]
+      summary: Stop a rollout for good; gateways not yet started keep their firmware (release engineer)
+      parameters:
+        - $ref: '#/components/parameters/RolloutId'
+      responses:
+        '200':
+          description: The rollout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rollout'
+        '409':
+          $ref: './openapi.yaml#/components/responses/Conflict'
+
+  /alerts/rules:
+    get:
+      tags: [alerts]
+      summary: The fixed v1 alert rules, for reference
+      responses:
+        '200':
+          description: The rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AlertRule'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+
   /alerts/{id}/ack:
     post:
       tags: [alerts]
@@ -92,6 +453,39 @@ paths:
           $ref: './openapi.yaml#/components/responses/Conflict'
 
 components:
+  parameters:
+    FirmwareId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    RolloutId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ModelId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    ConfigVersionNumber:
+      name: v
+      in: path
+      required: true
+      schema:
+        type: integer
+    JobId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -99,6 +493,189 @@ components:
       bearerFormat: JWT
 
   schemas:
+    DeviceExtras:
+      type: object
+      description: >
+        Fields the device page shows that DeviceDetail does not carry yet; merged into
+        the DeviceDetail response.
+      properties:
+        os:
+          type: string
+          example: OpenWrt 23.05.4
+        uptime_s:
+          type: integer
+          nullable: true
+          description: Seconds since boot; null while offline
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterfaceStatus'
+
+    InterfaceStatus:
+      type: object
+      properties:
+        type:
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+          example: wwan0
+        link_up:
+          type: boolean
+      required: [type, identifier]
+
+    ActionRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/JobType'
+      required: [type]
+
+    JobType:
+      type: string
+      enum: [reboot, logs, ping]
+
+    JobState:
+      type: string
+      enum: [pending, running, succeeded, failed, timed_out, cancelled]
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/JobType'
+        sn:
+          type: string
+        state:
+          $ref: '#/components/schemas/JobState'
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Null until the state is final
+        progress:
+          type: integer
+          nullable: true
+          description: 0..100, for the logs upload
+        detail:
+          type: string
+          nullable: true
+          description: 'Ping: "0% loss, avg 42 ms"'
+        error:
+          nullable: true
+          description: Set when the job failed or timed out
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required: [code, message]
+      required: [id, type, sn, state, created_at, finished_at, progress, detail, error]
+
+    JobLogs:
+      type: object
+      properties:
+        url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+      required: [url, expires_at]
+
+    PushPreview:
+      type: object
+      properties:
+        gateways:
+          type: integer
+          description: Active gateways of the model that would get the job
+        offline:
+          type: integer
+          description: How many of those are offline right now
+      required: [gateways, offline]
+
+    PushResult:
+      type: object
+      properties:
+        jobs:
+          type: integer
+      required: [jobs]
+
+    FirmwareImage:
+      type: object
+      properties:
+        id:
+          type: string
+        model_id:
+          type: string
+        version:
+          type: string
+        channel:
+          type: string
+          enum: [stable, beta]
+        size:
+          type: integer
+          description: Bytes
+        file_name:
+          type: string
+        sha256:
+          type: string
+        gateways:
+          type: integer
+          description: How many gateways run this version now
+        blocked:
+          type: boolean
+        blocked_reason:
+          type: string
+          nullable: true
+      required: [id, model_id, version, channel, size, file_name, sha256, gateways, blocked]
+
+    RolloutRequest:
+      type: object
+      properties:
+        model_id:
+          type: string
+        fw_version:
+          type: string
+        waves:
+          type: array
+          description: Ascending percentages ending at 100
+          items:
+            type: integer
+        failure_threshold:
+          type: integer
+          minimum: 1
+          maximum: 100
+          description: Pause when more than this percentage of updated gateways failed
+      required: [model_id, fw_version, waves, failure_threshold]
+
+    RolloutPreview:
+      type: object
+      properties:
+        need:
+          type: integer
+          description: Gateways not on the target version
+        total:
+          type: integer
+          description: Gateways of the model
+        waves:
+          type: array
+          description: Cumulative gateways once each wave is done
+          items:
+            type: integer
+        offline_deferred:
+          type: integer
+        skipped_low_tmp:
+          type: integer
+      required: [need, total, waves, offline_deferred, skipped_low_tmp]
+
     RolloutState:
       type: string
       enum: [running, soaking, paused, completed, aborted]
@@ -144,6 +721,10 @@ components:
                 type: string
               state:
                 $ref: '#/components/schemas/RolloutDeviceState'
+              progress:
+                type: integer
+                nullable: true
+                description: Download progress 0..100 while state is downloading
             required: [sn, state]
       required: [percent]
 
@@ -180,6 +761,22 @@ components:
     AlertSeverity:
       type: string
       enum: [info, warning, critical]
+
+    AlertRule:
+      type: object
+      properties:
+        id:
+          type: string
+          example: temp_high
+        name:
+          type: string
+          example: Temperature high
+        condition:
+          type: string
+          example: Temperature at or above 80 °C
+        severity:
+          $ref: '#/components/schemas/AlertSeverity'
+      required: [id, name, condition, severity]
 
     Alert:
       type: object

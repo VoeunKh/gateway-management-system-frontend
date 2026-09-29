@@ -97,3 +97,42 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   if (!fresh) return parse<T>(response);
   return parse<T>(await send(path, options, getAccessToken()));
 }
+
+export interface UploadOptions {
+  /** 0..1 as the body goes out. */
+  onProgress?: (fraction: number) => void;
+}
+
+/** fetch cannot report upload progress, so file uploads go through XMLHttpRequest. */
+function sendForm(path: string, form: FormData, token: string | null, options: UploadOptions) {
+  return new Promise<Response>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', buildUrl(path));
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Accept', 'application/json');
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) options.onProgress?.(event.loaded / event.total);
+    };
+    xhr.onerror = () => reject(new ApiError(0, 'network_error', NETWORK_ERROR_MESSAGE));
+    xhr.onload = () =>
+      resolve(
+        new Response(xhr.status === 204 ? null : xhr.responseText, {
+          status: xhr.status,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+    xhr.send(form);
+  });
+}
+
+/** Multipart POST with the same sign-in handling as `request`: refresh once on a 401, replay once. */
+export async function upload<T>(path: string, form: FormData, options: UploadOptions = {}) {
+  const token = getAccessToken();
+  const response = await sendForm(path, form, token, options);
+  if (response.status !== 401) return parse<T>(response);
+  const current = getAccessToken();
+  const fresh = current !== null && current !== token ? true : await refreshAccessToken();
+  if (!fresh) return parse<T>(response);
+  return parse<T>(await sendForm(path, form, getAccessToken(), options));
+}

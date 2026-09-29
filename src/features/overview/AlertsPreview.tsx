@@ -1,14 +1,15 @@
 import { Link } from 'wouter-preact';
 import type { Schemas } from '@/api/endpoints';
+import { useAckAlert, useOpenAlerts } from '@/api/useAlerts';
 import { Can } from '@/auth/guards';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { Button, Card, ErrorState, SeverityBadge, Skeleton } from '@/ui';
-import { PREVIEW_LIMIT, useAckAlert, useOpenAlerts } from './useOverview';
 
 type Alert = Schemas['Alert'];
 
+export const PREVIEW_LIMIT = 5;
+
 function AlertRow({ alert, ack }: { alert: Alert; ack: ReturnType<typeof useAckAlert> }) {
-  const busy = ack.isPending && ack.variables?.id === alert.id;
   return (
     <li class="alert-row">
       <SeverityBadge severity={alert.severity} />
@@ -27,7 +28,6 @@ function AlertRow({ alert, ack }: { alert: Alert; ack: ReturnType<typeof useAckA
         <Can perm="ackAlert">
           <Button
             size="sm"
-            loading={busy}
             aria-label={`Acknowledge alert on ${alert.sn}`}
             onClick={() => ack.mutate(alert)}
           >
@@ -39,18 +39,18 @@ function AlertRow({ alert, ack }: { alert: Alert; ack: ReturnType<typeof useAckA
   );
 }
 
-/** The newest open alerts, with a way to acknowledge them. */
-export function AlertsPreview({ count }: { count: number }) {
-  const alerts = useOpenAlerts(count);
+/** The newest open alerts, from the same query as the rail badge and the Alerts page. */
+export function AlertsPreview() {
+  const alerts = useOpenAlerts();
   const ack = useAckAlert();
   const shown = alerts.data?.slice(0, PREVIEW_LIMIT) ?? [];
   return (
     <Card title="Open alerts" aside={<Link href="/alerts">All alerts</Link>}>
-      {count > 0 && alerts.isPending ? (
+      {alerts.isPending ? (
         <Skeleton lines={3} label="Loading alerts" />
       ) : alerts.isError ? (
         <ErrorState message={alerts.error.message} onRetry={() => void alerts.refetch()} />
-      ) : count === 0 || shown.length === 0 ? (
+      ) : shown.length === 0 ? (
         <p class="muted">No open alerts.</p>
       ) : (
         <ul class="alert-rows">

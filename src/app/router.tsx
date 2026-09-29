@@ -1,5 +1,7 @@
+import type { ComponentChildren } from 'preact';
 import { Suspense, lazy } from 'preact/compat';
 import { Link, Redirect, Route, Switch, useLocation, useSearch } from 'wouter-preact';
+import { useOpenAlerts } from '@/api/useAlerts';
 import { LoginPage } from '@/auth/LoginPage';
 import { RequireRole } from '@/auth/guards';
 import { useSession } from '@/auth/session';
@@ -40,6 +42,12 @@ function NotFound() {
   );
 }
 
+/** The shell with the rail's open-alert count, from the same query the Alerts page reads. */
+function RailShell({ children }: { children: ComponentChildren }) {
+  const open = useOpenAlerts();
+  return <Shell openAlerts={open.data?.length}>{children}</Shell>;
+}
+
 function SignedIn() {
   const { status } = useSession();
   const [path] = useLocation();
@@ -61,7 +69,7 @@ function SignedIn() {
   }
 
   return (
-    <Shell>
+    <RailShell>
       <Suspense fallback={<Skeleton lines={6} label="Loading page" />}>
         <Switch>
           <Route path="/" component={OverviewPage} />
@@ -79,7 +87,7 @@ function SignedIn() {
           <Route component={NotFound} />
         </Switch>
       </Suspense>
-    </Shell>
+    </RailShell>
   );
 }
 

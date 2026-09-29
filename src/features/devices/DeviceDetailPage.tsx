@@ -1,16 +1,23 @@
+import type { ComponentChildren } from 'preact';
+import { useState } from 'preact/hooks';
 import { Link } from 'wouter-preact';
 import { ApiError } from '@/api/errors';
-import type { Schemas } from '@/api/endpoints';
+import type { DeviceView } from '@/api/endpoints';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { EmptyState, ErrorState, HealthBadge, Notice, Skeleton } from '@/ui';
+import { ActionButtons } from './detail/ActionButtons';
 import { ConfigCard } from './detail/ConfigCard';
+import { HistoryCard } from './detail/HistoryCard';
+import { JobPanel } from './detail/JobPanel';
+import { RolloutBanner } from './detail/RolloutBanner';
+import { TrendsCard } from './detail/TrendsCard';
 import { InterfacesCard, PackagesCard } from './detail/HardwareCards';
 import { HealthCard } from './detail/HealthCard';
 import { InfoCard } from './detail/InfoCard';
 import { devicesListHref } from './listState';
 import { useDevice } from './useDevice';
 
-function Header({ device }: { device: Schemas['DeviceDetail'] }) {
+function Header({ device, actions }: { device: DeviceView; actions: ComponentChildren }) {
   return (
     <header class="detail-head">
       <div>
@@ -31,13 +38,12 @@ function Header({ device }: { device: Schemas['DeviceDetail'] }) {
           </span>
         </p>
       </div>
-      {/* Reboot, Pull logs and Run ping arrive with UI-08. */}
-      <div class="detail-head__actions" />
+      <div class="detail-head__actions">{actions}</div>
     </header>
   );
 }
 
-function Banners({ device }: { device: Schemas['DeviceDetail'] }) {
+function Banners({ device }: { device: DeviceView }) {
   if (device.lifecycle === 'bricked') {
     return (
       <Notice tone="danger" title="Needs on-site recovery">
@@ -58,6 +64,7 @@ function Banners({ device }: { device: Schemas['DeviceDetail'] }) {
 
 export function DeviceDetailPage({ sn }: { sn: string }) {
   const device = useDevice(sn);
+  const [jobId, setJobId] = useState<string | null>(null);
   const back = (
     <Link href={devicesListHref()} class="back-link">
       ← Back to devices
@@ -92,12 +99,28 @@ export function DeviceDetailPage({ sn }: { sn: string }) {
   return (
     <section class="page">
       {back}
-      <Header device={d} />
+      <Header
+        device={d}
+        actions={<ActionButtons device={d} onStarted={(job) => setJobId(job.id)} />}
+      />
+      {jobId && (
+        <div class="job-slot">
+          <JobPanel
+            jobId={jobId}
+            onStarted={(job) => setJobId(job.id)}
+            onClose={() => setJobId(null)}
+          />
+        </div>
+      )}
       <Banners device={d} />
+      <RolloutBanner sn={d.sn} />
       <div class="detail-grid">
         <InfoCard device={d} />
         <HealthCard device={d} />
-        {/* Tables and the config need the full width. */}
+        {/* Charts, tables and the config need the full width. */}
+        <div class="detail-grid__wide">
+          <TrendsCard sn={d.sn} />
+        </div>
         <div class="detail-grid__wide">
           <InterfacesCard device={d} />
         </div>
@@ -108,6 +131,9 @@ export function DeviceDetailPage({ sn }: { sn: string }) {
         )}
         <div class="detail-grid__wide">
           <ConfigCard device={d} />
+        </div>
+        <div class="detail-grid__wide">
+          <HistoryCard sn={d.sn} />
         </div>
       </div>
     </section>

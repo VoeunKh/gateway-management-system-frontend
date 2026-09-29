@@ -139,34 +139,38 @@ its gzipped size, and must keep the bundle under budget.
 
 - [x] UI-05 Overview (rollout and alert panels on the draft API)
 - [x] UI-06 Device list
-- [x] UI-07 Device detail (sparkline, history and rollout banner wait for API)
-- [ ] UI-08 Remote actions with job tracking
+- [x] UI-07 Device detail (trend chart, history, rollout banner; OS, uptime and interface link state on the draft API)
+- [x] UI-08 Remote actions with job tracking (on the draft API)
 
 ### Phase 3 (Oct 12–16)
 
-- [ ] UI-09 Configuration: versions, diff, editor, push (all but push done; push waits for API)
-- [ ] UI-10 Firmware and rollouts
+- [x] UI-09 Configuration: versions, diff, editor, push (push on the draft API)
+- [x] UI-10 Firmware and rollouts (on the draft API)
 - [x] Packages screen (from the sample console; read-only, on the published `/models/{id}/packages`)
-- [ ] UI-11 Alerts and users (users done; alerts wait for API)
-- [ ] UI-12 Playwright flows, accessibility, responsive, pilot fixes (flows for the built screens run nightly)
+- [x] UI-11 Alerts and users (alerts on the draft API)
+- [ ] UI-12 Playwright flows, accessibility, responsive, pilot fixes (flows 1–5 pass at both widths and run nightly; axe-core checks need the dependency approved; manual report and pilot fixes pending)
 
 ## Backend dependencies
 
-| Screen | Needs | Until then |
+Every screen is built. Where the backend has not published an endpoint yet, the screen runs
+on a draft of it (`api/proposed.yaml`) served by MSW, so the console is fully usable in
+demos and tests before the backend catches up.
+
+| Screen | Needs | Today |
 | --- | --- | --- |
-| UI-04 | BE-01.3 auth, BE-01.4 spec | MSW fixtures from the spec |
-| UI-05 | BE-03.3 overview | MSW |
-| UI-06, UI-07 | BE-03.2, BE-03.3 | MSW |
-| UI-08 | BE-05.3 actions | MSW |
-| UI-09 | BE-07.1, BE-07.2, BE-07.3 | MSW |
-| UI-10 | BE-08, BE-09.1 | MSW |
-| UI-11 | BE-10, BE-01.3 users | MSW |
+| UI-04 | BE-01.3 auth, BE-01.4 spec | published |
+| UI-05 | BE-03.3 overview | published (counts only); rollout and alert lists on the draft |
+| UI-06, UI-07 | BE-03.2, BE-03.3 | published; OS, uptime, interface link state on the draft |
+| UI-08 | BE-05.3 actions and jobs | draft |
+| UI-09 | BE-07.1, BE-07.2, BE-07.3 | versions and diff published; push on the draft |
+| UI-10 | BE-08, BE-09.1 | draft |
+| UI-11 | BE-10, BE-01.3 users | users published; alerts on the draft |
+| Packages | BE-08 | published; "update outdated" not built (needs an endpoint) |
 
-Every screen is built against MSW fixtures written from `api/openapi.yaml`, so the
-frontend never waits for an endpoint.
-
-Endpoints the remaining screens need but the spec doesn't have yet, with proposed shapes
-and error codes in go-live order: [docs/api-requests.md](docs/api-requests.md).
+The mocks behave as the drafts describe (jobs progress, gateways apply a pushed config,
+rollouts advance wave by wave and pause on failures), so `tests/msw/handlers` doubles as a
+specification of what the console expects. What to publish, with proposed shapes and error
+codes, in go-live order: [docs/api-requests.md](docs/api-requests.md).
 
 ## Out of scope for v1
 

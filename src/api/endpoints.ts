@@ -1,4 +1,5 @@
-import { request } from './client';
+import { request, upload } from './client';
+import type { UploadOptions } from './client';
 import type { components as Draft, paths as DraftPaths } from './proposed.gen';
 import type { components, paths } from './types.gen';
 
@@ -6,6 +7,14 @@ import type { components, paths } from './types.gen';
 // Schemas covers the published spec and the draft one (api/proposed.yaml) under the same
 // names, so moving a schema from the draft into the spec changes nothing here.
 export type Schemas = components['schemas'] & Draft['schemas'];
+/** A device as the console reads it: the published fields plus the draft extras. */
+export type DeviceView = Schemas['DeviceDetail'] & Schemas['DeviceExtras'];
+export type MetricsQuery = NonNullable<
+  paths['/devices/{sn}/metrics']['get']['parameters']['query']
+>;
+export type HistoryQuery = NonNullable<
+  paths['/devices/{sn}/history']['get']['parameters']['query']
+>;
 export type DeviceQuery = NonNullable<paths['/devices']['get']['parameters']['query']>;
 export type RolloutQuery = NonNullable<DraftPaths['/rollouts']['get']['parameters']['query']>;
 export type AlertQuery = NonNullable<DraftPaths['/alerts']['get']['parameters']['query']>;
@@ -55,6 +64,16 @@ export const diffConfigVersions = (modelId: string, version: number, against: nu
     query: { against },
   });
 
+// Config push (draft spec until the backend publishes it)
+export const previewConfigPush = (modelId: string, version: number) =>
+  request<Schemas['PushPreview']>(`/models/${seg(modelId)}/configs/${version}/push/preview`, {
+    method: 'POST',
+  });
+export const pushConfig = (modelId: string, version: number) =>
+  request<Schemas['PushResult']>(`/models/${seg(modelId)}/configs/${version}/push`, {
+    method: 'POST',
+  });
+
 // Packages and firmware manifests
 export const getFleetPackages = (modelId: string) =>
   request<Schemas['FleetPackages']>(`/models/${seg(modelId)}/packages`);
@@ -71,7 +90,11 @@ export const recordFirmwareManifest = (modelId: string, fwVersion: string, manif
 // Devices
 export const listDevices = (query: DeviceQuery = {}, signal?: AbortSignal) =>
   request<Schemas['DeviceList']>('/devices', { query, signal });
-export const getDevice = (sn: string) => request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`);
+export const getDevice = (sn: string) => request<DeviceView>(`/devices/${seg(sn)}`);
+export const getDeviceMetrics = (sn: string, query: MetricsQuery = {}) =>
+  request<Schemas['MetricsSeries']>(`/devices/${seg(sn)}/metrics`, { query });
+export const getDeviceHistory = (sn: string, query: HistoryQuery = {}) =>
+  request<Schemas['DeviceHistory']>(`/devices/${seg(sn)}/history`, { query });
 export const updateDevice = (sn: string, patch: Schemas['DevicePatch']) =>
   request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`, { method: 'PATCH', json: patch });
 export const getRenderedConfig = (sn: string) =>
@@ -80,10 +103,40 @@ export const getRenderedConfig = (sn: string) =>
 // Overview
 export const getOverview = () => request<Schemas['Overview']>('/overview');
 
+// Remote actions and jobs (draft spec until the backend publishes them)
+export const createAction = (sn: string, type: Schemas['JobType']) =>
+  request<Schemas['Job']>(`/devices/${seg(sn)}/actions`, { method: 'POST', json: { type } });
+export const getJob = (id: string) => request<Schemas['Job']>(`/jobs/${seg(id)}`);
+export const cancelJob = (id: string) =>
+  request<Schemas['Job']>(`/jobs/${seg(id)}/cancel`, { method: 'POST' });
+export const getJobLogs = (id: string) => request<Schemas['JobLogs']>(`/jobs/${seg(id)}/logs`);
+
 // Rollouts and alerts (draft spec until the backend publishes them)
 export const listRollouts = (query: RolloutQuery = {}) =>
   request<Schemas['Rollout'][]>('/rollouts', { query });
+export const getRollout = (id: string) => request<Schemas['Rollout']>(`/rollouts/${seg(id)}`);
+export const previewRollout = (body: Schemas['RolloutRequest']) =>
+  request<Schemas['RolloutPreview']>('/rollouts/preview', { method: 'POST', json: body });
+export const createRollout = (body: Schemas['RolloutRequest']) =>
+  request<Schemas['Rollout']>('/rollouts', { method: 'POST', json: body });
+export const rolloutAction = (id: string, action: 'pause' | 'resume' | 'abort') =>
+  request<Schemas['Rollout']>(`/rollouts/${seg(id)}/${action}`, { method: 'POST' });
+
+// Firmware images (draft spec)
+export const listFirmware = (model?: string) =>
+  request<Schemas['FirmwareImage'][]>('/firmware', { query: { model } });
+export const uploadFirmware = (form: FormData, options?: UploadOptions) =>
+  upload<Schemas['FirmwareImage']>('/firmware', form, options);
+export const blockFirmware = (id: string, reason?: string) =>
+  request<Schemas['FirmwareImage']>(`/firmware/${seg(id)}/block`, {
+    method: 'POST',
+    json: { reason },
+  });
+export const unblockFirmware = (id: string) =>
+  request<Schemas['FirmwareImage']>(`/firmware/${seg(id)}/unblock`, { method: 'POST' });
+
 export const listAlerts = (query: AlertQuery = {}) =>
   request<Schemas['Alert'][]>('/alerts', { query });
+export const listAlertRules = () => request<Schemas['AlertRule'][]>('/alerts/rules');
 export const ackAlert = (id: string) =>
   request<Schemas['Alert']>(`/alerts/${seg(id)}/ack`, { method: 'POST' });

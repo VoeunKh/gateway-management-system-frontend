@@ -9,11 +9,50 @@ export interface FixtureModel {
 }
 
 export const MODELS: FixtureModel[] = [
-  { model: { id: 'GW200', name: 'GW200 LTE Cat 4' }, firmware: ['1.2.0', '1.3.0'] },
-  { model: { id: 'GW210', name: 'GW210 LTE Cat 6' }, firmware: ['1.2.0', '1.3.0', '1.3.1'] },
-  { model: { id: 'GW300', name: 'GW300 Dual SIM' }, firmware: ['2.0.4', '2.1.0'] },
-  { model: { id: 'GW310L', name: 'GW310L Rail' }, firmware: ['2.1.0'] },
-  { model: { id: 'GW400', name: 'GW400 5G' }, firmware: ['3.0.0', '3.0.2'] },
+  {
+    model: {
+      id: 'GW200',
+      name: 'GW200 LTE Cat 4',
+      soc: 'MediaTek MT7628AN',
+      ram_mb: 128,
+      flash_mb: 32,
+    },
+    firmware: ['1.2.0', '1.3.0'],
+  },
+  {
+    model: {
+      id: 'GW210',
+      name: 'GW210 LTE Cat 6',
+      soc: 'MediaTek MT7621A',
+      ram_mb: 256,
+      flash_mb: 64,
+    },
+    firmware: ['1.2.0', '1.3.0', '1.3.1'],
+  },
+  {
+    model: {
+      id: 'GW300',
+      name: 'GW300 Dual SIM',
+      soc: 'Qualcomm IPQ4019',
+      ram_mb: 256,
+      flash_mb: 128,
+    },
+    firmware: ['2.0.4', '2.1.0'],
+  },
+  {
+    model: {
+      id: 'GW310L',
+      name: 'GW310L Rail',
+      soc: 'Qualcomm IPQ4019',
+      ram_mb: 512,
+      flash_mb: 128,
+    },
+    firmware: ['2.1.0'],
+  },
+  {
+    model: { id: 'GW400', name: 'GW400 5G', soc: 'Qualcomm IPQ8074', ram_mb: 1024, flash_mb: 256 },
+    firmware: ['3.0.0', '3.0.2'],
+  },
 ];
 
 const SITE_NAMES = [

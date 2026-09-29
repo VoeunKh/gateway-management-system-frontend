@@ -2,6 +2,7 @@ import { HttpResponse, http } from 'msw';
 import type { components } from '@/api/types.gen';
 import { currentUser, denyUnless, errorJson } from '../auth';
 import { db } from '../db';
+import { pushTargets, startPush } from '../fixtures/pushes';
 import { firstInvalidLine, lineDiff, renderTemplate } from '../fixtures/uci';
 import { api } from './api';
 import { packageHandlers } from './packages';
@@ -18,7 +19,31 @@ async function sha256(text: string): Promise<string> {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
+const findVersion = (modelId: string, v: string) =>
+  versionsOf(modelId)?.find((entry) => entry.version === Number(v));
+
 export const configHandlers = [
+  // Draft endpoints (api/proposed.yaml): config push.
+  http.post<VersionParams>(api('/models/:id/configs/:v/push/preview'), ({ request, params }) => {
+    const denied = denyUnless(request);
+    if (denied) return denied;
+    if (!versionsOf(params.id)) return noModel();
+    if (!findVersion(params.id, params.v)) return errorJson(404, 'not_found', 'no such version');
+    const targets = pushTargets(params.id);
+    return HttpResponse.json({
+      gateways: targets.length,
+      offline: targets.filter((d) => !d.online).length,
+    });
+  }),
+
+  http.post<VersionParams>(api('/models/:id/configs/:v/push'), ({ request, params }) => {
+    const denied = denyUnless(request, 'release');
+    if (denied) return denied;
+    if (!versionsOf(params.id)) return noModel();
+    if (!findVersion(params.id, params.v)) return errorJson(404, 'not_found', 'no such version');
+    return HttpResponse.json({ jobs: startPush(params.id, Number(params.v)) }, { status: 202 });
+  }),
+
   http.get<ModelParams>(api('/models/:id/configs'), ({ request, params }) => {
     const denied = denyUnless(request);
     if (denied) return denied;

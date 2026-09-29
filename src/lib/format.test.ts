@@ -1,9 +1,11 @@
 import {
   formatBytes,
+  formatClock,
   formatCelsius,
   formatCount,
   formatDateTime,
   formatDbm,
+  formatDuration,
   formatPercent,
   formatRelative,
 } from './format';
@@ -64,5 +66,20 @@ describe('unit formatting', () => {
     expect(formatBytes(512)).toBe(unit('byte', 512));
     expect(formatBytes(7_900_000)).toBe(unit('megabyte', 7.9));
     expect(formatBytes(1_234_000_000)).toBe(unit('gigabyte', 1.234));
+  });
+});
+
+describe('formatDuration and formatClock', () => {
+  it('keeps the two largest non-zero units', () => {
+    expect(formatDuration(45)).toBe('45s');
+    expect(formatDuration(3 * 3600 + 20 * 60 + 5)).toBe('3h 20m');
+    expect(formatDuration(2 * 86400 + 4 * 3600 + 59)).toBe('2d 4h');
+    expect(formatDuration(0)).toBe('0s');
+  });
+
+  it('formats clock times, with the weekday when asked', () => {
+    const iso = '2026-09-29T14:30:00Z';
+    expect(formatClock(iso)).toMatch(/\d/);
+    expect(formatClock(iso, true).length).toBeGreaterThan(formatClock(iso).length);
   });
 });

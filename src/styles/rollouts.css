@@ -1,0 +1,130 @@
+/* Rollouts: wave board, counters, legend */
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}
+.rollout-meta {
+  margin: 0 0 var(--space-3);
+}
+.rollout-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+}
+.waveboard {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-3) 0;
+}
+.wave {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--border);
+}
+.wave__title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.wave__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+/* Shape and pattern carry the state as well as colour */
+.wcell {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid var(--neutral);
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+}
+.wcell:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.wcell--waiting {
+  background: var(--surface-2);
+}
+.wcell--downloading,
+.wcell--installing {
+  border-color: var(--accent);
+  background: var(--accent);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.wcell--installing {
+  border-radius: 50%;
+}
+.wcell--updated {
+  border-color: var(--ok);
+  background: var(--ok);
+}
+.wcell--rolled_back {
+  border-color: var(--warn);
+  background: repeating-linear-gradient(45deg, var(--warn) 0 3px, var(--warn-bg) 3px 5px);
+}
+.wcell--needs_recovery {
+  border-color: var(--danger);
+  background: var(--danger);
+  box-shadow: inset 0 0 0 2px var(--surface);
+}
+.wcell--skipped {
+  border-style: dashed;
+  background: repeating-linear-gradient(-45deg, var(--surface-2) 0 3px, transparent 3px 6px);
+}
+.wcell--deferred {
+  border-style: dotted;
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wcell--downloading,
+  .wcell--installing {
+    animation: none;
+  }
+}
+.wave-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.wave-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.wave-legend .wcell {
+  cursor: default;
+}
+.counters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+}
+.counters__item {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.counters dt {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.counters dd {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

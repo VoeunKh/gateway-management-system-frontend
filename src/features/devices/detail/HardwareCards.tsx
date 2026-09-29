@@ -1,8 +1,8 @@
-import type { Schemas } from '@/api/endpoints';
-import { Card, PackageStatusBadge, Table } from '@/ui';
+import type { DeviceView } from '@/api/endpoints';
+import { Badge, Card, PackageStatusBadge, Table } from '@/ui';
 import { interfaceLabel } from './labels';
 
-type Device = Schemas['DeviceDetail'];
+type Device = DeviceView;
 
 export function InterfacesCard({ device }: { device: Device }) {
   return (
@@ -18,9 +18,25 @@ export function InterfacesCard({ device }: { device: Device }) {
           columns={[
             { key: 'type', header: 'Type', cell: (hw) => interfaceLabel(hw.type) },
             {
+              key: 'name',
+              header: 'Name',
+              cell: (hw) =>
+                hw.name ? <span class="mono">{hw.name}</span> : <span class="muted">—</span>,
+            },
+            {
               key: 'id',
               header: 'Identifier',
               cell: (hw) => <span class="mono">{hw.identifier}</span>,
+            },
+            {
+              key: 'link',
+              header: 'Link',
+              cell: (hw) =>
+                hw.link_up === undefined ? (
+                  <span class="muted">—</span>
+                ) : (
+                  <Badge tone={hw.link_up ? 'ok' : 'neutral'}>{hw.link_up ? 'Up' : 'Down'}</Badge>
+                ),
             },
           ]}
         />

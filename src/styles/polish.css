@@ -1,0 +1,151 @@
+/* Polish: type, elevation, feedback. Built on the tokens; loaded last so it refines the
+   components without changing their markup. */
+:root {
+  --ring: 0 0 0 3px color-mix(in srgb, var(--focus) 28%, transparent);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.05), 0 1px 3px rgb(16 24 40 / 0.06);
+}
+:root[data-theme='dark'] {
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
+  }
+}
+
+/* Type */
+body {
+  font-size: 0.9375rem;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+.page h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.page h2 {
+  margin-top: var(--space-6);
+  font-size: var(--text-md);
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+/* The line under a page title reads as a lead, not as body text */
+.page > h1 + p.muted {
+  max-width: 68ch;
+  margin: calc(-1 * var(--space-1)) 0 var(--space-5);
+  font-size: var(--text-md);
+}
+::selection {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+input,
+select,
+textarea {
+  accent-color: var(--accent);
+}
+
+/* Elevation */
+.card,
+.table-wrap,
+.totals__item {
+  box-shadow: var(--shadow-card);
+}
+.card {
+  padding: var(--space-5);
+}
+.card__head h2 {
+  font-size: var(--text-md);
+  font-weight: 650;
+}
+.page .card h2,
+.page .card__head h2 {
+  margin-top: 0;
+}
+
+/* Feedback: hover, press, focus */
+.btn,
+.rail__link,
+.table tbody tr td {
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.btn {
+  box-shadow: var(--shadow-1);
+}
+.btn:active:not([aria-disabled='true']) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+.btn--ghost {
+  box-shadow: none;
+}
+.btn--primary {
+  box-shadow:
+    0 1px 2px rgb(16 24 40 / 0.18),
+    inset 0 1px 0 rgb(255 255 255 / 0.14);
+}
+.btn:focus-visible,
+.field input:focus-visible,
+.field select:focus-visible,
+.field textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+  box-shadow: var(--ring);
+}
+
+/* Rail: the current page carries an accent bar as well as a tint */
+.rail__link {
+  position: relative;
+}
+.rail__link[aria-current='page'] {
+  color: var(--accent);
+}
+.rail__link[aria-current='page']::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: -12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent);
+  content: '';
+}
+@media (max-width: 819px) {
+  .rail__link[aria-current='page']::before {
+    top: auto;
+    right: 8px;
+    bottom: -6px;
+    left: 8px;
+    width: auto;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+}
+
+/* Tables: a quiet header band and a hover row */
+.table thead th {
+  background: var(--surface-2);
+}
+.table tbody tr:hover td {
+  background: color-mix(in srgb, var(--surface-2) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .rail__link,
+  .table tbody tr td {
+    transition: none;
+  }
+  .btn:active:not([aria-disabled='true']) {
+    transform: none;
+  }
+}

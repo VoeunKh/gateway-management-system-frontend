@@ -110,12 +110,10 @@ describe('AlertsPreview', () => {
     expect(button).toHaveAttribute('title', "Your role (Viewer) can't do this");
   });
 
-  it('says so, without a request, when nothing is open', async () => {
+  it('says so when nothing is open', async () => {
     db.alerts = [];
-    const paths = recordPaths();
     await openOverview();
     const alerts = await card();
-    expect(within(alerts).getByText('No open alerts.')).toBeInTheDocument();
-    expect(paths).not.toContain('/api/v1/alerts');
+    expect(await within(alerts).findByText('No open alerts.')).toBeInTheDocument();
   });
 });

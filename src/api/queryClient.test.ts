@@ -24,8 +24,11 @@ describe('query client', () => {
       rollout: 5_000,
       job: 3_000,
       overview: 30_000,
-      board: 60_000,
+      push: 3_000,
+      board: 240_000,
+      rolloutsSummary: 120_000,
       alerts: 30_000,
+      alertBadge: 60_000,
       devices: 30_000,
       metrics: 60_000,
     });

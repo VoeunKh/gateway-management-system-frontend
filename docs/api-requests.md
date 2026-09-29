@@ -1,14 +1,18 @@
 # API requests from the web console
 
-What the console still needs in `api/openapi.yaml`, screen by screen, in go-live order.
-Everything the current spec provides is built (login, shell, device list and detail,
-config versions and diff, users, Playwright flows). The screens below are waiting only on
-these endpoints.
+What the console needs in `api/openapi.yaml` that the backend has not published yet,
+screen by screen, in go-live order.
 
 **Status (spec update of 2026-09-29).** Delivered: `GET /overview` (counts only, see 1),
 `GET /devices/{sn}/metrics`, `GET /devices/{sn}/history`, and the hardware fields on models
-and device detail (see 7). Everything else below is still open. Until an endpoint is
-published, the console builds against a draft of it in `api/proposed.yaml` (see the end).
+and device detail (see 7). Everything else below is still open.
+
+**Every screen is built.** For each open endpoint the console has a working screen running
+on a mock, and the exact shape the screen was built against is written as OpenAPI in
+[`api/proposed.yaml`](../api/proposed.yaml) (see the end). So each item below is a request
+with a concrete, tested proposal: if the backend publishes something different, the console
+adapts its types and mocks, and the screens change little. The proposal is meant to save
+the backend team design time, not to bind it.
 
 The shapes are **proposals**: the backend owns the contract. Change names and fields
 freely; the console follows whatever lands in the spec (types are generated from it). Two
@@ -19,17 +23,17 @@ conventions we rely on, both already used by the current spec:
 
 ## Summary
 
-| # | For | Needs | Card | Backend task |
-| --- | --- | --- | --- | --- |
-| 1 | Overview | `GET /overview` | UI-05 | BE-03.3 |
-| 2 | Remote actions | `POST /devices/{sn}/actions`, `GET /jobs/{id}`, `POST /jobs/{id}/cancel`, `GET /jobs/{id}/logs` | UI-08 | BE-05.3 |
-| 3 | Config push | `POST …/configs/{v}/push/preview`, `POST …/configs/{v}/push` | UI-09 | BE-07.x |
-| 4 | Firmware images | list, upload (image + signature), block / unblock | UI-10 | BE-08 |
-| 5 | Rollouts | list, preview, create, get, pause / resume / abort | UI-10 | BE-09.1 |
-| 6 | Alerts | list, acknowledge, rules | UI-11, UI-05, shell badge | BE-10 |
-| 7 | Device detail extras | metrics history, events, a few fields | UI-07 | BE-03.x |
-| 8 | Small additions | list total, list temperature, user disable | UI-06, UI-11 | BE-03.2, BE-01.3 |
-| 9 | Update outdated packages | `POST /models/{id}/packages/{name}/upgrade` | Packages | BE-08 |
+| # | For | Needs | Card | Backend task | Console today |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Overview | `GET /overview` | UI-05 | BE-03.3 | built; two gaps |
+| 2 | Remote actions | `POST /devices/{sn}/actions`, `GET /jobs/{id}`, `POST /jobs/{id}/cancel`, `GET /jobs/{id}/logs` | UI-08 | BE-05.3 | built on a mock |
+| 3 | Config push | `POST …/configs/{v}/push/preview`, `POST …/configs/{v}/push` | UI-09 | BE-07.x | built on a mock |
+| 4 | Firmware images | list, upload (image + signature), block / unblock | UI-10 | BE-08 | built on a mock |
+| 5 | Rollouts | list, preview, create, get, pause / resume / abort | UI-10 | BE-09.1 | built on a mock |
+| 6 | Alerts | list, acknowledge, rules | UI-11, UI-05, shell badge | BE-10 | built on a mock |
+| 7 | Device detail extras | metrics history, events, a few fields | UI-07 | BE-03.x | built; two small gaps |
+| 8 | Small additions | list total, list temperature, user disable | UI-06, UI-11 | BE-03.2, BE-01.3 | workarounds in place |
+| 9 | Update outdated packages | `POST /models/{id}/packages/{name}/upgrade` | Packages | BE-08 | not built (needs the endpoint) |
 
 Phase 2 (overview and remote actions) is due first; 1 and 2 unblock it.
 
@@ -39,12 +43,16 @@ Phase 2 (overview and remote actions) is due first; 1 and 2 unblock it.
 active rollouts and open alerts. The console fills the rest in itself:
 
 - the fleet board (one square per gateway) and the drift count come from `GET /devices`,
-  two pages of 200 polled every 60 s;
-- the rollout and alert panels call `GET /rollouts?state=active` and
-  `GET /alerts?state=open&limit=5` (5 and 6), only while the overview counts any.
+  two pages of 200, polled every 4 minutes (the header counts still refresh every 30 s);
+- the rollout panel calls `GET /rollouts?state=active` every 2 minutes, only while the
+  overview counts any (the Firmware page polls a live rollout every 5 s);
+- the alert panel and the rail badge share one `GET /alerts?state=open&limit=200`, once a
+  minute (6 and 8 in the list below).
 
-Idle, that is 4 requests a minute while nothing is active, the card's budget. Once rollouts
-and alerts exist it is 8. Two small additions would bring it back to 2:
+Measured in a browser, idle on the overview with rollouts and alerts present: 16 requests
+in 4 minutes, so **4 a minute**, the card's limit, but only by polling the board and the
+rollout panel slowly (before that it was 7). Two small additions would let it poll them
+at the normal pace and bring it down to 2:
 
 ```yaml
 Overview, extra fields:
@@ -127,9 +135,15 @@ Rollout:
   #               | needs_recovery | skipped | deferred
 ```
 
-The device detail page also wants the device's own rollout job for its banner ("in rollout
-R-014: downloading 42%"). Either `DeviceDetail.rollout: { rollout_id, state, progress }`
-or a filter such as `GET /rollouts?sn=`.
+The device detail page also wants the device's own rollout state for its banner ("In rollout
+R-014: Downloading firmware 42%"). The console uses `GET /rollouts?state=active&sn={sn}`:
+each returned rollout lists only that gateway in `waves[].devices`, and a device entry may
+carry `progress` (0..100) while it is downloading.
+
+Behaviour the wave board relies on: a rollout's gateways never move backwards between
+polls (`waiting` → `downloading` → `installing` → a final state), the counters add up to the
+number of gateways in the waves, and `pause_reason` is set only when the rollout paused
+itself (it is null when a person paused it).
 
 ## 6. Alerts (UI-11, overview preview, shell badge)
 
@@ -149,12 +163,19 @@ The rail's alert badge uses the open list's length, so the two can never disagre
 ## 7. Device detail extras (UI-07) — mostly delivered
 
 Delivered: `GET /devices/{sn}/metrics` (bucketed series), `GET /devices/{sn}/history`
-(events and jobs), and `soc`, `ram_mb`, `flash_mb` on `DeviceDetail`. Still open:
+(events and jobs), and `soc`, `ram_mb`, `flash_mb` on `DeviceDetail`. The device page's
+trend chart, history card and hardware facts use them. Still open, and shown only when
+present (the rows are left out until then):
 
 ```yaml
-DeviceDetail, extra fields:  os, uptime_s
-HWInterface, extra fields:   name, link_up
+DeviceDetail, extra fields:  os: "OpenWrt 23.05.4", uptime_s: 1234567 | null
+DeviceDetail.interfaces[], extra fields:  name: "wwan0", link_up: true
 ```
+
+One more the history feed needs: today an event's `type` tag is free text. The console has
+labels for `provisioned`, `cfg_applied`, `fw_updated`, `offline`, `online`, `reboot`,
+`logs` and `ping`, and turns any other tag into a sentence ("modem_reset" → "Modem reset").
+A list of the tags the backend writes would let it label all of them.
 
 ## 8. Small additions
 
@@ -182,7 +203,11 @@ POST /models/{id}/packages/{name}/upgrade   → 202 { jobs: 12 }   # gateways of
 
 1. While an endpoint is only proposed, it lives in `api/proposed.yaml`, the console's
    draft. `npm run gen:api` turns it into `src/api/proposed.gen.ts`, MSW serves it, and the
-   screen is built against it.
+   screen is built against it. The mocks behave the way the proposal says: jobs move from
+   pending to a final state, a pushed config is applied by gateways over a few seconds, a
+   rollout advances wave by wave and pauses itself when failures pass the limit, and an image
+   with a bad signature is refused with `signature_invalid`. Reading `tests/msw/handlers` shows
+   the behaviour the console expects from each endpoint.
 2. The backend updates `api/openapi.yaml` and it is copied into this repository byte for
    byte; `npm run gen:api` regenerates `src/api/types.gen.ts` (CI fails if either
    generated file is stale).
