@@ -20,7 +20,7 @@ npm test           # Vitest + Testing Library + MSW (npm run coverage for covera
 npm run build
 npm run size       # blocking: fails above the budgets below (run after build)
 npm run gen:api    # api/openapi.yaml -> src/api/types.gen.ts
-npm run e2e        # Playwright against the production build
+npm run e2e        # Playwright flows at 1280 and 375 px, production build + mock API
 ```
 
 ### With Docker (make)
@@ -130,21 +130,21 @@ its gzipped size, and must keep the bundle under budget.
 - [x] UI-01 Project setup, CI stage and size gate
 - [x] UI-02 Design tokens and ui components
 - [x] UI-03 API client, generated types, MSW fixtures
-- [ ] UI-04 App shell, router, session, login, role guards
+- [x] UI-04 App shell, router, session, login, role guards
 
 ### Phase 2 (Oct 5–9)
 
 - [ ] UI-05 Overview
-- [ ] UI-06 Device list
-- [ ] UI-07 Device detail
+- [x] UI-06 Device list
+- [x] UI-07 Device detail (sparkline, history and rollout banner wait for API)
 - [ ] UI-08 Remote actions with job tracking
 
 ### Phase 3 (Oct 12–16)
 
-- [ ] UI-09 Configuration: versions, diff, editor, push
+- [ ] UI-09 Configuration: versions, diff, editor, push (all but push done; push waits for API)
 - [ ] UI-10 Firmware and rollouts
-- [ ] UI-11 Alerts and users
-- [ ] UI-12 Playwright flows, accessibility, responsive, pilot fixes
+- [ ] UI-11 Alerts and users (users done; alerts wait for API)
+- [ ] UI-12 Playwright flows, accessibility, responsive, pilot fixes (flows for the built screens run nightly)
 
 ## Backend dependencies
 
