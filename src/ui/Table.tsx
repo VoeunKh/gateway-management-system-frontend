@@ -15,9 +15,18 @@ export interface TableProps<Row> {
   columns: Column<Row>[];
   rows: Row[];
   rowKey: (row: Row) => string;
+  /** Makes whole rows clickable; keep a real link in a cell for keyboard and new-tab use. */
+  onRowClick?: (row: Row, event: MouseEvent) => void;
 }
 
-export function Table<Row>({ caption, hideCaption, columns, rows, rowKey }: TableProps<Row>) {
+export function Table<Row>({
+  caption,
+  hideCaption,
+  columns,
+  rows,
+  rowKey,
+  onRowClick,
+}: TableProps<Row>) {
   return (
     <div class="table-wrap">
       <table class="table">
@@ -33,7 +42,11 @@ export function Table<Row>({ caption, hideCaption, columns, rows, rowKey }: Tabl
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={rowKey(row)}>
+            <tr
+              key={rowKey(row)}
+              class={onRowClick ? 'table__row--link' : undefined}
+              onClick={onRowClick ? (event) => onRowClick(row, event) : undefined}
+            >
               {columns.map((col) => (
                 <td key={col.key} class={col.numeric ? 'num' : undefined}>
                   {col.cell(row)}

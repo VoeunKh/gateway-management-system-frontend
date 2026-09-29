@@ -28,6 +28,12 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+.table__row--link {
+  cursor: pointer;
+}
+.table__row--link:hover td {
+  background: var(--surface-2);
+}
 .table .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -47,4 +53,54 @@
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+.cell-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Lists: filter bar, footer, chips */
+.filter-bar {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(2, minmax(140px, 1fr)) auto;
+  align-items: end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.list-more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-4);
+}
+.list-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.list-footer p {
+  margin: 0;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (max-width: 819px) {
+  .filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-bar > :first-child {
+    grid-column: 1 / -1;
+  }
 }
