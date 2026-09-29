@@ -23,6 +23,36 @@ npm run gen:api    # api/openapi.yaml -> src/api/types.gen.ts
 npm run e2e        # Playwright against the production build
 ```
 
+### With Docker (make)
+
+Only Docker (with Compose v2) and `make` are needed; Node runs in the containers.
+`make` alone lists every target. Settings come from `.env` (copy `.env.example`).
+
+| Command | What it does |
+| --- | --- |
+| `make dev` | Vite with hot reload at http://localhost:5173; `/api` goes to the backend on the Docker host (`API_PROXY_TARGET`) |
+| `make dev-up` / `dev-down` / `dev-logs` | Same in the background, stop, follow logs |
+| `make dev-shell` | Shell in the dev container (`npm test`, `npx vitest`, …) |
+| `make dev-install` | Reinstall `node_modules` in the container after `package-lock.json` changes |
+| `make check` | Lint, typecheck, tests, build and size budget in a clean container |
+| `make prod-build` | Production image `gwfleet-web:<git commit>` (and `:latest`); fails if any check fails |
+| `make prod-up` / `prod-down` | Build and run it at http://localhost:8081, stop it |
+| `make prod-restart` / `prod-logs` / `prod-ps` | Apply `.env` changes, follow logs, show health |
+| `make smoke` | Check the running production container answers `/healthz` and serves the app |
+
+Production is a non-root nginx image (about 80 MB) with a read-only filesystem:
+
+- serves the bundle with `index.html` revalidated on every load and hashed `/assets/` cached for
+  a year, gzip, and security headers including a strict Content-Security-Policy;
+- proxies `/api/` to `API_UPSTREAM` (`scheme://host:port`, default the Docker host on 8080), so
+  the refresh cookie stays same-origin; the name is resolved when the container starts, so run
+  `make prod-restart` if the backend's address changes;
+- `/healthz` for load balancers and the container health check.
+
+Behind a TLS-intercepting proxy, pass its CA to the npm install with
+`make prod-build BUILD_CA=/path/ca.crt` (a build secret, not stored in the image) and any extra
+`docker build` flags with `DOCKER_BUILD_FLAGS`.
+
 CI (`.github/workflows/web.yml`) runs lint, typecheck, test, build and size on every push
 to `main` and every pull request, skipping docs-only changes.
 

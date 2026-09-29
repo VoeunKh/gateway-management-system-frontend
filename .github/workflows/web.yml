@@ -24,3 +24,15 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run size
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the production image and start it
+        run: make prod-up
+      - name: Smoke test
+        run: make smoke
+      - name: Stop
+        if: always()
+        run: make prod-down

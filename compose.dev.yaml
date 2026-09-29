@@ -1,0 +1,27 @@
+# Development: Vite with hot reload. Source is bind-mounted; node_modules lives in a
+# named volume so the container's Linux build of dependencies never touches the host.
+# Start with `make dev`.
+name: gwfleet-web-dev
+
+services:
+  web:
+    # Built by `make dev-build` (so BUILD_CA and DOCKER_BUILD_FLAGS apply).
+    image: gwfleet-web-dev:local
+    build:
+      context: .
+      target: dev
+    ports:
+      - '${DEV_PORT:-5173}:5173'
+    environment:
+      # Where /api goes: the backend's `make dev-up` on the Docker host by default.
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://host.docker.internal:8080}
+      # Set to true if file changes are not picked up (some macOS/Windows mounts).
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING:-false}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+volumes:
+  node_modules:
