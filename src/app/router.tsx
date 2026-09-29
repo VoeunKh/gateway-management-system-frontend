@@ -11,8 +11,8 @@ import { Shell } from './Shell';
 const DevicesPage = lazy(() =>
   import('@/features/devices/DevicesPage').then((m) => ({ default: m.DevicesPage })),
 );
-const DevicePage = lazy(() =>
-  import('@/features/devices/DevicePage').then((m) => ({ default: m.DevicePage })),
+const DeviceDetailPage = lazy(() =>
+  import('@/features/devices/DeviceDetailPage').then((m) => ({ default: m.DeviceDetailPage })),
 );
 const ConfigPage = lazy(() =>
   import('@/features/config/ConfigPage').then((m) => ({ default: m.ConfigPage })),
@@ -63,7 +63,7 @@ function SignedIn() {
         <Switch>
           <Route path="/" component={OverviewPage} />
           <Route path="/devices" component={DevicesPage} />
-          <Route path="/devices/:sn">{(params) => <DevicePage sn={params.sn} />}</Route>
+          <Route path="/devices/:sn">{(params) => <DeviceDetailPage sn={params.sn} />}</Route>
           <Route path="/config" component={ConfigPage} />
           <Route path="/firmware" component={FirmwarePage} />
           <Route path="/alerts" component={AlertsPage} />

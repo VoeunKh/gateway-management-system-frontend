@@ -48,3 +48,30 @@
 .state--error .state__icon {
   color: var(--danger);
 }
+
+/* Notice: page-level banner */
+.notice {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-md);
+}
+.notice p {
+  margin: var(--space-1) 0 0;
+  color: var(--text);
+}
+.notice--warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.notice--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.notice--info {
+  background: var(--info-bg);
+  color: var(--info);
+}

@@ -11,5 +11,6 @@ afterEach(() => {
   server.resetHandlers();
   resetDb();
   setAccessToken(null);
+  sessionStorage.clear();
 });
 afterAll(() => server.close());
