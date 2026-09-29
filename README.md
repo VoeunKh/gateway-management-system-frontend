@@ -161,6 +161,9 @@ its gzipped size, and must keep the bundle under budget.
 Every screen is built against MSW fixtures written from `api/openapi.yaml`, so the
 frontend never waits for an endpoint.
 
+Endpoints the remaining screens need but the spec doesn't have yet, with proposed shapes
+and error codes in go-live order: [docs/api-requests.md](docs/api-requests.md).
+
 ## Out of scope for v1
 
 Packages screen, MFA screen, audit log screen, API keys, multi-tenant views, maintenance
