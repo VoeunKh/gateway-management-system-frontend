@@ -89,6 +89,23 @@ function renderWith() {
   return renderApp('/firmware');
 }
 
+/**
+ * A completed rollout leaves the live list for Finished, and its card goes with it, so "done"
+ * is asserted on the Finished row: looking for the badge inside the card races that removal.
+ */
+const finishedRow = (id: string) =>
+  waitFor(
+    () => {
+      const table = screen.getByRole('table', { name: 'Finished rollouts' });
+      const row = within(table)
+        .getAllByRole('row')
+        .find((r) => r.textContent?.includes(id));
+      expect(row).toBeDefined();
+      return row as HTMLElement;
+    },
+    { timeout: 3000 },
+  );
+
 describe('a live rollout', () => {
   // Time is frozen (one step a minute) and moved by hand, so nothing races the polling.
   beforeEach(() => {
@@ -106,10 +123,11 @@ describe('a live rollout', () => {
       expect(within(c).getByLabelText('Rollout counts')).toHaveTextContent(/In progress\s*[1-9]/),
     );
     stepRollouts(40);
-    await waitFor(() => expect(within(c).getByText('Completed')).toBeInTheDocument(), {
-      timeout: 3000,
-    });
-    expect(within(c).getByLabelText('Rollout counts')).not.toHaveTextContent(/In progress\s*[1-9]/);
+    const row = await finishedRow(r.id);
+    expect(row).toHaveTextContent('Completed');
+    expect(row).toHaveTextContent(/\d+ updated/);
+    // Done means off the live list: the card is gone and nothing polls it any more.
+    await waitFor(() => expect(c).not.toBeInTheDocument());
     await new Promise((resolve) => setTimeout(resolve, 200));
     const settled = polls();
     await new Promise((resolve) => setTimeout(resolve, 250));
@@ -138,9 +156,7 @@ describe('a live rollout', () => {
       expect(within(c).queryByText('Paused automatically')).not.toBeInTheDocument(),
     );
     stepRollouts(40);
-    await waitFor(() => expect(within(c).getByText('Completed')).toBeInTheDocument(), {
-      timeout: 3000,
-    });
+    expect(await finishedRow(r.id)).toHaveTextContent('Completed');
   });
 
   it('pauses and resumes on request', async () => {

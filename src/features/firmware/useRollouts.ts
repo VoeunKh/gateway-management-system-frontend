@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'preact/hooks';
 import {
   createRollout,
   getRollout,
@@ -15,13 +16,31 @@ const LIVE: readonly Rollout['state'][] = ['running', 'soaking', 'paused'];
 
 export const isLiveRollout = (r: Rollout | undefined) => r !== undefined && LIVE.includes(r.state);
 
-/** Active rollouts are polled; finished ones never change, so they are fetched once. */
+/**
+ * Active rollouts are polled; finished ones never change once finished, so they are fetched
+ * once. The catch is a rollout that finishes on its own: it drops out of the active list,
+ * and without a nudge it would appear in neither list until a reload. So when a rollout
+ * leaves the active list, the finished list, the overview and the image counts refresh.
+ */
 export function useRollouts(state: 'active' | 'finished') {
-  return useQuery({
+  const client = useQueryClient();
+  const query = useQuery({
     queryKey: ['rollouts', state],
     queryFn: () => listRollouts({ state }),
     refetchInterval: state === 'active' ? POLL_MS.rollout : false,
   });
+  const before = useRef<string[]>([]);
+  useEffect(() => {
+    if (state !== 'active' || !query.data) return;
+    const ids = query.data.map((r) => r.id);
+    const left = before.current.some((id) => !ids.includes(id));
+    before.current = ids;
+    if (!left) return;
+    void client.invalidateQueries({ queryKey: ['rollouts', 'finished'] });
+    void client.invalidateQueries({ queryKey: ['overview'] });
+    void client.invalidateQueries({ queryKey: ['firmware'] });
+  }, [client, query.data, state]);
+  return query;
 }
 
 /** One rollout with every gateway of every wave; polled only while it is running, soaking or paused. */
