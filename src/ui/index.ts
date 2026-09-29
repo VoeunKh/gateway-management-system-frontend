@@ -9,6 +9,7 @@ export * from './icons';
 export * from './Notice';
 export * from './Sparkline';
 export * from './states';
+export * from './StatusBadges';
 export * from './Table';
 export * from './Toast';
 export * from './Toggle';

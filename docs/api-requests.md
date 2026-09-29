@@ -5,6 +5,11 @@ Everything the current spec provides is built (login, shell, device list and det
 config versions and diff, users, Playwright flows). The screens below are waiting only on
 these endpoints.
 
+**Status (spec update of 2026-09-29).** Delivered: `GET /overview` (counts only, see 1),
+`GET /devices/{sn}/metrics`, `GET /devices/{sn}/history`, and the hardware fields on models
+and device detail (see 7). Everything else below is still open. Until an endpoint is
+published, the console builds against a draft of it in `api/proposed.yaml` (see the end).
+
 The shapes are **proposals**: the backend owns the contract. Change names and fields
 freely; the console follows whatever lands in the spec (types are generated from it). Two
 conventions we rely on, both already used by the current spec:
@@ -27,18 +32,25 @@ conventions we rely on, both already used by the current spec:
 
 Phase 2 (overview and remote actions) is due first; 1 and 2 unblock it.
 
-## 1. Overview (UI-05)
+## 1. Overview (UI-05) — delivered, two gaps
 
-One call for the whole screen, polled every 30 s, so the idle screen stays within the
-"≤ 4 requests per minute" budget.
+`GET /overview` now returns counts by health, the firmware mix per model and the number of
+active rollouts and open alerts. The console fills the rest in itself:
+
+- the fleet board (one square per gateway) and the drift count come from `GET /devices`,
+  two pages of 200 polled every 60 s;
+- the rollout and alert panels call `GET /rollouts?state=active` and
+  `GET /alerts?state=open&limit=5` (5 and 6), only while the overview counts any.
+
+Idle, that is 4 requests a minute while nothing is active, the card's budget. Once rollouts
+and alerts exist it is 8. Two small additions would bring it back to 2:
 
 ```yaml
-GET /overview → 200
-  totals:   { gateways: 300, online: 281, attention: 12, drifted: 9 }   # attention = warning + critical
-  devices:  [ { sn, model_id, health, fw_version } ]                    # every gateway, for the fleet board
-  firmware: [ { model_id, versions: [ { fw_version, count } ] } ]      # version mix per model
-  rollouts: [ Rollout ]                                                 # active only (running, soaking, paused); see 5
-  alerts:   [ Alert ]                                                   # 5 newest open; see 6
+Overview, extra fields:
+  drifted:  integer       # devices whose config drifted
+  board:    [ { sn, model_id, health, fw_version } ]   # every gateway, for the board
+  rollouts: [ Rollout ]   # active only, without waves[].devices
+  alerts:   [ Alert ]     # the 5 newest open
 ```
 
 ## 2. Remote actions and jobs (UI-08)
@@ -133,14 +145,13 @@ Alert:
 The rail's alert badge uses the open list's length, so the two can never disagree. A plain
 `GET /alerts?state=open` is enough; no separate count endpoint is needed.
 
-## 7. Device detail extras (UI-07)
+## 7. Device detail extras (UI-07) — mostly delivered
+
+Delivered: `GET /devices/{sn}/metrics` (bucketed series), `GET /devices/{sn}/history`
+(events and jobs), and `soc`, `ram_mb`, `flash_mb` on `DeviceDetail`. Still open:
 
 ```yaml
-GET /devices/{sn}/metrics?since=24h        → 200 [ { time, temp_c, cpu_pct, mem_pct, signal_dbm } ]
-                                             # temperature sparkline; polled every 60 s
-GET /devices/{sn}/events?limit=50          → 200 [ { time, message } ]   # history, newest first
-
-DeviceDetail, extra fields:  soc, ram_mb, flash_mb, os, uptime_s
+DeviceDetail, extra fields:  os, uptime_s
 HWInterface, extra fields:   name, link_up
 ```
 
@@ -156,7 +167,11 @@ HWInterface, extra fields:   name, link_up
 
 ## How the console picks these up
 
-1. The backend updates `api/openapi.yaml` and copies it into this repository byte for byte.
-2. `npm run gen:api` regenerates `src/api/types.gen.ts` (CI fails if the two disagree).
-3. The console adds endpoint functions and MSW mock handlers, then builds the screen
-   against the mocks until the endpoint is deployed.
+1. While an endpoint is only proposed, it lives in `api/proposed.yaml`, the console's
+   draft. `npm run gen:api` turns it into `src/api/proposed.gen.ts`, MSW serves it, and the
+   screen is built against it.
+2. The backend updates `api/openapi.yaml` and it is copied into this repository byte for
+   byte; `npm run gen:api` regenerates `src/api/types.gen.ts` (CI fails if either
+   generated file is stale).
+3. The published endpoint is deleted from the draft. Code reads both through the same
+   `Schemas` names, so only shapes that differ from the draft need changes.

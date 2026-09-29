@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "size": "size-limit",
-    "gen:api": "openapi-typescript api/openapi.yaml -o src/api/types.gen.ts",
+    "gen:api": "openapi-typescript api/openapi.yaml -o src/api/types.gen.ts && openapi-typescript api/proposed.yaml -o src/api/proposed.gen.ts",
     "e2e": "playwright test --pass-with-no-tests"
   },
   "browserslist": [

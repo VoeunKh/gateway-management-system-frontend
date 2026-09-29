@@ -1,0 +1,214 @@
+# Draft endpoints the console needs before the backend publishes them.
+#
+# These are the proposals from docs/api-requests.md, written as OpenAPI so the console's
+# types stay generated (npm run gen:api writes src/api/proposed.gen.ts). When the backend
+# adds an endpoint to api/openapi.yaml, delete it here; the console keeps working because
+# Schemas in src/api/endpoints.ts reads both files under the same names.
+openapi: 3.0.3
+info:
+  title: gwfleet console draft API
+  version: '0.1.0'
+servers:
+  - url: /api/v1
+security:
+  - bearerAuth: []
+
+paths:
+  /rollouts:
+    get:
+      tags: [rollouts]
+      summary: Rollouts, newest first, without wave devices
+      parameters:
+        - name: state
+          in: query
+          description: active = running, soaking or paused; finished = completed or aborted
+          schema:
+            type: string
+            enum: [active, finished]
+      responses:
+        '200':
+          description: The rollouts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rollout'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+
+  /alerts:
+    get:
+      tags: [alerts]
+      summary: Alerts, newest first
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+            enum: [open, resolved]
+        - name: limit
+          in: query
+          description: Default 50, maximum 200
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: The alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+
+  /alerts/{id}/ack:
+    post:
+      tags: [alerts]
+      summary: Acknowledge an open alert (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The acknowledged alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './openapi.yaml#/components/responses/Conflict'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RolloutState:
+      type: string
+      enum: [running, soaking, paused, completed, aborted]
+
+    RolloutDeviceState:
+      type: string
+      enum:
+        [waiting, downloading, installing, updated, rolled_back, needs_recovery, skipped, deferred]
+
+    RolloutCounters:
+      type: object
+      description: Gateways in the rollout by state; they add up to the rollout's size
+      properties:
+        updated:
+          type: integer
+        in_progress:
+          type: integer
+        rolled_back:
+          type: integer
+        needs_recovery:
+          type: integer
+        skipped:
+          type: integer
+        deferred:
+          type: integer
+        waiting:
+          type: integer
+      required: [updated, in_progress, rolled_back, needs_recovery, skipped, deferred, waiting]
+
+    RolloutWave:
+      type: object
+      properties:
+        percent:
+          type: integer
+          description: Share of the model's gateways updated once this wave finishes
+        devices:
+          type: array
+          description: Present on GET /rollouts/{id} only
+          items:
+            type: object
+            properties:
+              sn:
+                type: string
+              state:
+                $ref: '#/components/schemas/RolloutDeviceState'
+            required: [sn, state]
+      required: [percent]
+
+    Rollout:
+      type: object
+      properties:
+        id:
+          type: string
+          example: R-014
+        model_id:
+          type: string
+        fw_version:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        created_by:
+          type: string
+          description: Name of the user who started it
+        state:
+          $ref: '#/components/schemas/RolloutState'
+        pause_reason:
+          type: string
+          nullable: true
+          description: Why the rollout paused itself; null when paused by a person or running
+        counters:
+          $ref: '#/components/schemas/RolloutCounters'
+        waves:
+          type: array
+          items:
+            $ref: '#/components/schemas/RolloutWave'
+      required: [id, model_id, fw_version, created_at, created_by, state, counters, waves]
+
+    AlertSeverity:
+      type: string
+      enum: [info, warning, critical]
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+        sn:
+          type: string
+        rule:
+          type: string
+          example: temp_high
+        severity:
+          $ref: '#/components/schemas/AlertSeverity'
+        message:
+          type: string
+          example: Temperature 81 °C
+        opened_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        acked_by:
+          type: string
+          nullable: true
+          description: Name of the admin who acknowledged it
+        acked_at:
+          type: string
+          format: date-time
+          nullable: true
+      required: [id, sn, rule, severity, message, opened_at, resolved_at, acked_by, acked_at]

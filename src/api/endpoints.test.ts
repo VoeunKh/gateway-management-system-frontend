@@ -172,3 +172,43 @@ describe('device endpoints', () => {
     await expect(apiCalls.getDevice('NOPE-0000')).rejects.toMatchObject({ status: 404 });
   });
 });
+
+describe('overview, rollout and alert endpoints', () => {
+  it('counts the fleet by health and firmware', async () => {
+    signInAs('viewer');
+    const overview = await apiCalls.getOverview();
+    const { healthy, warning, critical, offline } = overview.health;
+    expect(healthy + warning + critical + offline).toBe(overview.devices);
+    const gw200 = overview.models.find((m) => m.model_id === 'GW200');
+    expect(gw200?.firmware.reduce((sum, f) => sum + f.devices, 0)).toBe(gw200?.devices);
+  });
+
+  it('lists active rollouts without their wave devices', async () => {
+    signInAs('viewer');
+    const rollouts = await apiCalls.listRollouts({ state: 'active' });
+    expect(rollouts.map((r) => r.state).sort()).toEqual(['paused', 'running', 'soaking']);
+    expect(rollouts.every((r) => r.waves.every((w) => w.devices === undefined))).toBe(true);
+  });
+
+  it('lists open alerts newest first, up to the limit', async () => {
+    signInAs('viewer');
+    const alerts = await apiCalls.listAlerts({ state: 'open', limit: 3 });
+    expect(alerts).toHaveLength(3);
+    expect(alerts.every((a) => a.resolved_at === null)).toBe(true);
+    expect([...alerts].sort((a, b) => b.opened_at.localeCompare(a.opened_at))).toEqual(alerts);
+  });
+
+  it('lets only an admin acknowledge, once', async () => {
+    const open = db.alerts.find((a) => a.resolved_at === null && !a.acked_at);
+    signInAs('viewer');
+    await expect(apiCalls.ackAlert(open?.id ?? '')).rejects.toMatchObject({ status: 403 });
+    signInAs('admin');
+    await expect(apiCalls.ackAlert(open?.id ?? '')).resolves.toMatchObject({
+      acked_by: 'Ada Admin',
+    });
+    await expect(apiCalls.ackAlert(open?.id ?? '')).rejects.toMatchObject({
+      status: 409,
+      code: 'already_acknowledged',
+    });
+  });
+});

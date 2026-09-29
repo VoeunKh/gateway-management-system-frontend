@@ -13,7 +13,7 @@ for (const role of Object.keys(EXPECTED) as Role[]) {
     const expected = EXPECTED[role];
     await signIn(page, role);
     const nav = page.getByRole('navigation', { name: 'Main' });
-    await expect(page.getByText(USERS[role].name)).toBeVisible();
+    await expect(page.getByText(USERS[role].name, { exact: true })).toBeVisible();
     for (const item of ['Overview', 'Devices', 'Configuration', 'Firmware', 'Alerts']) {
       await expect(nav.getByRole('link', { name: item })).toBeVisible();
     }

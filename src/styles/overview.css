@@ -1,0 +1,219 @@
+/* Overview */
+.totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+  margin: 0 0 var(--space-4);
+}
+.totals__item {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.totals dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.totals dd {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+.overview-grid__wide {
+  grid-column: 1 / -1;
+}
+.overview-grid__stack {
+  display: grid;
+  gap: var(--space-4);
+}
+@media (max-width: 819px) {
+  .overview-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Fleet board: fill pattern and legend back up the colour */
+.board {
+  display: grid;
+  gap: var(--space-4);
+}
+.board__model {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+}
+.board__cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.board__cell {
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.board__cell:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.board__cell--healthy {
+  background: var(--ok);
+}
+.board__cell--warning {
+  background: repeating-linear-gradient(45deg, var(--warn) 0 3px, var(--warn-bg) 3px 5px);
+  border-color: var(--warn);
+}
+.board__cell--critical {
+  background: var(--danger);
+  box-shadow: inset 0 0 0 2px var(--surface);
+  border-color: var(--danger);
+}
+.board__cell--offline {
+  background: transparent;
+  border-color: var(--neutral);
+}
+.board__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+.board__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.board__legend .board__cell {
+  cursor: default;
+}
+
+/* Firmware split */
+.splits,
+.split__legend,
+.mini-rollouts,
+.alert-rows {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.split__model {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+}
+.split__bar {
+  display: flex;
+  height: 24px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.split__part {
+  overflow: hidden;
+  padding: 0 var(--space-2);
+  color: var(--series-text);
+  font-size: var(--text-xs);
+  line-height: 24px;
+  white-space: nowrap;
+}
+.split__part + .split__part {
+  border-left: 2px solid var(--surface);
+}
+.split__part--1 {
+  background: var(--series-1);
+}
+.split__part--2 {
+  background: var(--series-2);
+}
+.split__part--3 {
+  background: var(--series-3);
+}
+.split__part--4 {
+  background: var(--series-4);
+}
+.split__part--5 {
+  background: var(--series-5);
+}
+.split__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+.split__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.split__swatch {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+}
+
+/* Rollouts and alerts */
+.mini-rollout__head,
+.alert-row__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+.mini-rollout__meta {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.progress {
+  height: 8px;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.progress__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.alert-row {
+  display: grid;
+  /* A fixed badge column keeps the serial numbers lined up from row to row. */
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+}
+.alert-row > .badge {
+  justify-self: start;
+}
+.alert-row__ack {
+  font-size: var(--text-sm);
+}
+@media (max-width: 479px) {
+  .alert-row {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+  .alert-row > :last-child {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

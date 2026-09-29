@@ -46,6 +46,7 @@ export default defineConfig({
       exclude: [
         'src/**/*.test.{ts,tsx}',
         'src/api/types.gen.ts',
+        'src/api/proposed.gen.ts',
         'src/main.tsx',
         'src/ui/gallery/**',
         'src/ui/index.ts',

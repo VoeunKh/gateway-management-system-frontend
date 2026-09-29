@@ -45,6 +45,13 @@
   --neutral-bg: #eceef1;
   --skeleton: #e3e6eb;
   --skeleton-shine: #f1f3f6;
+  /* Categorical series (firmware versions). Text on them uses --series-text. */
+  --series-1: #1f5fd6;
+  --series-2: #0b7a7c;
+  --series-3: #b3541e;
+  --series-4: #7a4fc4;
+  --series-5: #5f6b7a;
+  --series-text: #ffffff;
 
   color-scheme: light;
 }
@@ -74,6 +81,12 @@
     --neutral-bg: #262c35;
     --skeleton: #232932;
     --skeleton-shine: #2d343e;
+    --series-1: #6ea0ff;
+    --series-2: #3cc6c8;
+    --series-3: #f0915a;
+    --series-4: #b394f5;
+    --series-5: #9ba5b3;
+    --series-text: #0b1220;
     --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
     --shadow-2: 0 8px 24px rgb(0 0 0 / 0.5);
     color-scheme: dark;
@@ -104,6 +117,12 @@
   --neutral-bg: #262c35;
   --skeleton: #232932;
   --skeleton-shine: #2d343e;
+  --series-1: #6ea0ff;
+  --series-2: #3cc6c8;
+  --series-3: #f0915a;
+  --series-4: #b394f5;
+  --series-5: #9ba5b3;
+  --series-text: #0b1220;
   --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-2: 0 8px 24px rgb(0 0 0 / 0.5);
   color-scheme: dark;
