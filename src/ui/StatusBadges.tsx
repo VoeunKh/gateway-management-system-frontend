@@ -30,6 +30,18 @@ export function PackageStatusBadge({ status }: { status: Schemas['PackageStatus'
   return <Badge tone={tone}>{label}</Badge>;
 }
 
+/** What a gateway is doing inside a rollout, in words. */
+export const ROLLOUT_DEVICE_LABEL: Record<Schemas['RolloutDeviceState'], string> = {
+  waiting: 'Waiting for its wave',
+  downloading: 'Downloading firmware',
+  installing: 'Installing',
+  updated: 'Updated',
+  rolled_back: 'Rolled back',
+  needs_recovery: 'Needs on-site recovery',
+  skipped: 'Skipped by pre-check',
+  deferred: 'Offline, deferred',
+};
+
 export function RolloutStateBadge({ state }: { state: Schemas['RolloutState'] }) {
   const { tone, label } = ROLLOUT[state];
   return <Badge tone={tone}>{label}</Badge>;

@@ -7,8 +7,10 @@ import {
   formatPercent,
   formatRelative,
 } from '@/lib/format';
-import { Badge, Card, DetailList, HealthBadge } from '@/ui';
+import { Badge, Card, DetailList, HealthBadge, Sparkline } from '@/ui';
+import { useDeviceMetrics } from '../useDeviceTelemetry';
 import { LOW_TMP_KB } from './labels';
+import { toTrend } from './trends';
 
 type Metrics = Schemas['LastMetrics'];
 
@@ -51,12 +53,27 @@ function rows(m: Metrics) {
   ];
 }
 
+function TemperatureSpark({ sn }: { sn: string }) {
+  const series = useDeviceMetrics(sn, '24h');
+  const trend = toTrend(series.data?.points ?? [], 'temp_c');
+  if (trend.length === 0) return null;
+  return (
+    <div class="health-spark">
+      <span class="muted">Temperature, last 24 hours</span>
+      <Sparkline values={trend.map((p) => p.v)} label="Temperature, last 24 hours" />
+    </div>
+  );
+}
+
 export function HealthCard({ device }: { device: Schemas['DeviceDetail'] }) {
   const metrics = device.last_metrics;
   return (
     <Card title="Health" aside={<HealthBadge health={device.health} />}>
       {metrics ? (
-        <DetailList items={rows(metrics)} />
+        <>
+          <DetailList items={rows(metrics)} />
+          <TemperatureSpark sn={device.sn} />
+        </>
       ) : (
         <p class="muted">No data yet. The gateway hasn't reported any metrics.</p>
       )}

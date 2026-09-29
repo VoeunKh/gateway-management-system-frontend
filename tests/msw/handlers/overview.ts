@@ -42,10 +42,26 @@ export const overviewHandlers = [
   http.get(api('/rollouts'), ({ request }) => {
     const denied = denyUnless(request);
     if (denied) return denied;
-    const state = new URL(request.url).searchParams.get('state');
+    const q = new URL(request.url).searchParams;
+    const state = q.get('state');
+    const sn = q.get('sn');
     const rollouts = db.rollouts
       .filter((r) => !state || (state === 'active') === isActive(r))
-      .map((r) => ({ ...r, waves: r.waves.map(({ percent }) => ({ percent })) }));
+      .filter((r) => !sn || r.waves.some((w) => w.devices?.some((d) => d.sn === sn)))
+      .map((r) => ({
+        ...r,
+        // A device lookup returns just that gateway; the list returns no devices.
+        waves: r.waves.map(({ percent, devices }) => ({
+          percent,
+          ...(sn
+            ? {
+                devices: (devices ?? [])
+                  .filter((d) => d.sn === sn)
+                  .map((d) => ({ ...d, progress: d.state === 'downloading' ? 42 : null })),
+              }
+            : {}),
+        })),
+      }));
     return HttpResponse.json(rollouts);
   }),
 

@@ -87,3 +87,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+.health-spark {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+}

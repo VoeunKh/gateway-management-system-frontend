@@ -6,6 +6,14 @@ import type { components, paths } from './types.gen';
 // Schemas covers the published spec and the draft one (api/proposed.yaml) under the same
 // names, so moving a schema from the draft into the spec changes nothing here.
 export type Schemas = components['schemas'] & Draft['schemas'];
+/** A device as the console reads it: the published fields plus the draft extras. */
+export type DeviceView = Schemas['DeviceDetail'] & Schemas['DeviceExtras'];
+export type MetricsQuery = NonNullable<
+  paths['/devices/{sn}/metrics']['get']['parameters']['query']
+>;
+export type HistoryQuery = NonNullable<
+  paths['/devices/{sn}/history']['get']['parameters']['query']
+>;
 export type DeviceQuery = NonNullable<paths['/devices']['get']['parameters']['query']>;
 export type RolloutQuery = NonNullable<DraftPaths['/rollouts']['get']['parameters']['query']>;
 export type AlertQuery = NonNullable<DraftPaths['/alerts']['get']['parameters']['query']>;
@@ -71,7 +79,11 @@ export const recordFirmwareManifest = (modelId: string, fwVersion: string, manif
 // Devices
 export const listDevices = (query: DeviceQuery = {}, signal?: AbortSignal) =>
   request<Schemas['DeviceList']>('/devices', { query, signal });
-export const getDevice = (sn: string) => request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`);
+export const getDevice = (sn: string) => request<DeviceView>(`/devices/${seg(sn)}`);
+export const getDeviceMetrics = (sn: string, query: MetricsQuery = {}) =>
+  request<Schemas['MetricsSeries']>(`/devices/${seg(sn)}/metrics`, { query });
+export const getDeviceHistory = (sn: string, query: HistoryQuery = {}) =>
+  request<Schemas['DeviceHistory']>(`/devices/${seg(sn)}/history`, { query });
 export const updateDevice = (sn: string, patch: Schemas['DevicePatch']) =>
   request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`, { method: 'PATCH', json: patch });
 export const getRenderedConfig = (sn: string) =>

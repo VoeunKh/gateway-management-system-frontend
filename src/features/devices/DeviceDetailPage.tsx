@@ -1,16 +1,19 @@
 import { Link } from 'wouter-preact';
 import { ApiError } from '@/api/errors';
-import type { Schemas } from '@/api/endpoints';
+import type { DeviceView } from '@/api/endpoints';
 import { formatDateTime, formatRelative } from '@/lib/format';
 import { EmptyState, ErrorState, HealthBadge, Notice, Skeleton } from '@/ui';
 import { ConfigCard } from './detail/ConfigCard';
+import { HistoryCard } from './detail/HistoryCard';
+import { RolloutBanner } from './detail/RolloutBanner';
+import { TrendsCard } from './detail/TrendsCard';
 import { InterfacesCard, PackagesCard } from './detail/HardwareCards';
 import { HealthCard } from './detail/HealthCard';
 import { InfoCard } from './detail/InfoCard';
 import { devicesListHref } from './listState';
 import { useDevice } from './useDevice';
 
-function Header({ device }: { device: Schemas['DeviceDetail'] }) {
+function Header({ device }: { device: DeviceView }) {
   return (
     <header class="detail-head">
       <div>
@@ -37,7 +40,7 @@ function Header({ device }: { device: Schemas['DeviceDetail'] }) {
   );
 }
 
-function Banners({ device }: { device: Schemas['DeviceDetail'] }) {
+function Banners({ device }: { device: DeviceView }) {
   if (device.lifecycle === 'bricked') {
     return (
       <Notice tone="danger" title="Needs on-site recovery">
@@ -94,10 +97,14 @@ export function DeviceDetailPage({ sn }: { sn: string }) {
       {back}
       <Header device={d} />
       <Banners device={d} />
+      <RolloutBanner sn={d.sn} />
       <div class="detail-grid">
         <InfoCard device={d} />
         <HealthCard device={d} />
-        {/* Tables and the config need the full width. */}
+        {/* Charts, tables and the config need the full width. */}
+        <div class="detail-grid__wide">
+          <TrendsCard sn={d.sn} />
+        </div>
         <div class="detail-grid__wide">
           <InterfacesCard device={d} />
         </div>
@@ -108,6 +115,9 @@ export function DeviceDetailPage({ sn }: { sn: string }) {
         )}
         <div class="detail-grid__wide">
           <ConfigCard device={d} />
+        </div>
+        <div class="detail-grid__wide">
+          <HistoryCard sn={d.sn} />
         </div>
       </div>
     </section>

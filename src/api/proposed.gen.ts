@@ -17,6 +17,8 @@ export interface paths {
                 query?: {
                     /** @description active = running, soaking or paused; finished = completed or aborted */
                     state?: "active" | "finished";
+                    /** @description Only rollouts that include this gateway; each wave then lists just that gateway, so the device page can show its own progress */
+                    sn?: string;
                 };
                 header?: never;
                 path?: never;
@@ -131,6 +133,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Fields the device page shows that DeviceDetail does not carry yet; merged into the DeviceDetail response. */
+        DeviceExtras: {
+            /** @example OpenWrt 23.05.4 */
+            os?: string;
+            /** @description Seconds since boot; null while offline */
+            uptime_s?: number | null;
+            interfaces?: components["schemas"]["InterfaceStatus"][];
+        };
+        InterfaceStatus: {
+            type: string;
+            identifier: string;
+            /** @example wwan0 */
+            name?: string;
+            link_up?: boolean;
+        };
         /** @enum {string} */
         RolloutState: "running" | "soaking" | "paused" | "completed" | "aborted";
         /** @enum {string} */
@@ -152,6 +169,8 @@ export interface components {
             devices?: {
                 sn: string;
                 state: components["schemas"]["RolloutDeviceState"];
+                /** @description Download progress 0..100 while state is downloading */
+                progress?: number | null;
             }[];
         };
         Rollout: {

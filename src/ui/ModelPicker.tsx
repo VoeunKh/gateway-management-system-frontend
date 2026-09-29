@@ -1,5 +1,5 @@
-import { useId } from 'preact/hooks';
 import type { Schemas } from '@/api/endpoints';
+import { Segmented } from './Segmented';
 
 export interface ModelPickerProps {
   models: Schemas['Model'][];
@@ -7,24 +7,13 @@ export interface ModelPickerProps {
   onChange: (modelId: string) => void;
 }
 
-/** Segmented control: a native radio group, so arrow keys move between models. */
 export function ModelPicker({ models, value, onChange }: ModelPickerProps) {
-  const name = useId();
   return (
-    <fieldset class="segmented">
-      <legend class="sr-only">Model</legend>
-      {models.map((model) => (
-        <label key={model.id} class="segmented__option" title={model.name}>
-          <input
-            type="radio"
-            name={name}
-            value={model.id}
-            checked={model.id === value}
-            onChange={() => onChange(model.id)}
-          />
-          <span>{model.id}</span>
-        </label>
-      ))}
-    </fieldset>
+    <Segmented
+      legend="Model"
+      value={value}
+      onChange={onChange}
+      options={models.map((model) => ({ value: model.id, label: model.id, title: model.name }))}
+    />
   );
 }

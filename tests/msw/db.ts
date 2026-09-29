@@ -1,4 +1,4 @@
-import type { Schemas } from '@/api/endpoints';
+import type { DeviceView, Schemas } from '@/api/endpoints';
 import type { components } from '@/api/types.gen';
 import { MODELS, SITES, USERS, buildConfigVersions } from './fixtures/catalog';
 import type { FixtureModel, FixtureUser } from './fixtures/catalog';
@@ -12,9 +12,11 @@ export interface MockDb {
   models: FixtureModel[];
   sites: S['Site'][];
   configs: Map<string, S['ConfigVersion'][]>;
-  devices: S['DeviceDetail'][];
+  devices: DeviceView[];
   manifests: Map<string, S['FirmwareManifest']>;
   rollouts: Schemas['Rollout'][];
+  /** Per-gateway events and jobs, newest first; seeded on first request. */
+  history: Map<string, Schemas['HistoryEntry'][]>;
   /** Newest first. */
   alerts: Schemas['Alert'][];
   /** access token -> user id */
@@ -50,6 +52,7 @@ function fresh(): MockDb {
     devices,
     manifests,
     rollouts: buildRollouts(devices),
+    history: new Map(),
     alerts: buildAlerts(devices),
     tokens: new Map(),
     refreshUserId: null,

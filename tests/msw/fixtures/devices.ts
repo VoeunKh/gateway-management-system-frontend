@@ -1,3 +1,4 @@
+import type { DeviceView } from '@/api/endpoints';
 import type { components } from '@/api/types.gen';
 import { MODELS, SITES } from './catalog';
 import { hex, minutesAgo, seeded } from './random';
@@ -29,9 +30,9 @@ function packagesFor(fw: string, drifted: boolean): S['PackageStatus'][] {
   });
 }
 
-export function buildDevices(targets: Map<string, number | null>): S['DeviceDetail'][] {
+export function buildDevices(targets: Map<string, number | null>): DeviceView[] {
   const rand = seeded(20261020);
-  const devices: S['DeviceDetail'][] = [];
+  const devices: DeviceView[] = [];
 
   for (let i = 0; i < DEVICE_COUNT; i++) {
     const { model, firmware } = MODELS[i % MODELS.length] ?? rand.pick(MODELS);
@@ -89,14 +90,44 @@ export function buildDevices(targets: Map<string, number | null>): S['DeviceDeta
         { type: 'iccid', identifier: `8944${String(rand.int(0, 1e14)).padStart(15, '0')}` },
       ],
       last_metrics: metrics,
+      soc: model.soc ?? null,
+      ram_mb: model.ram_mb ?? null,
+      flash_mb: model.flash_mb ?? null,
       packages: knownManifest ? packagesFor(fw, packageDrift) : [],
     });
   }
-  return devices.sort((a, b) => a.sn.localeCompare(b.sn));
+  return withExtras(devices.sort((a, b) => a.sn.localeCompare(b.sn)));
 }
 
 /** The list endpoint returns Device, not DeviceDetail. */
-export function toListItem(device: S['DeviceDetail']): S['Device'] {
-  const { created_at, interfaces, last_metrics, packages, ...item } = device;
+export function toListItem(device: DeviceView): S['Device'] {
+  const {
+    created_at,
+    interfaces,
+    last_metrics,
+    packages,
+    soc,
+    ram_mb,
+    flash_mb,
+    os,
+    uptime_s,
+    ...item
+  } = device;
   return item;
+}
+
+/** Fields only the draft spec has (OS, uptime, interface names), from their own seed so the
+ * fleet above stays exactly as it was. */
+function withExtras(devices: DeviceView[]): DeviceView[] {
+  const rand = seeded(4242);
+  return devices.map((device) => ({
+    ...device,
+    os: 'OpenWrt 23.05.4',
+    uptime_s: device.online ? rand.int(3_600, 2_000_000) : null,
+    interfaces: device.interfaces.map((hw) => ({
+      ...hw,
+      name: hw.type === 'mac' ? 'eth0' : 'wwan0',
+      link_up: device.online && rand.next() > 0.05,
+    })),
+  }));
 }

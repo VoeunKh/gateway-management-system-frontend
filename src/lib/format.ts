@@ -68,3 +68,31 @@ export function formatBytes(bytes: number): string {
   }
   return (byteFormats[index] ?? byteFormats[0])?.format(value) ?? String(bytes);
 }
+
+const unitFormats = (['day', 'hour', 'minute', 'second'] as const).map(
+  (unit) => new Intl.NumberFormat(undefined, { style: 'unit', unit, unitDisplay: 'narrow' }),
+);
+const UNIT_SECONDS = [86_400, 3_600, 60, 1];
+
+/** "3d 4h", "12m": the two largest units that are not zero. */
+export function formatDuration(seconds: number): string {
+  let rest = Math.max(0, Math.round(seconds));
+  const parts: string[] = [];
+  UNIT_SECONDS.forEach((size, i) => {
+    const whole = Math.floor(rest / size);
+    rest -= whole * size;
+    if (whole > 0 && parts.length < 2) parts.push(unitFormats[i]?.format(whole) ?? '');
+  });
+  return parts.join(' ') || unitFormats[3]?.format(0) || '0s';
+}
+
+const timeOfDay = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' });
+const dayAndTime = new Intl.DateTimeFormat(undefined, {
+  weekday: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+/** "14:30"; with `withDay`, "Tue 14:30". Chart axes and tooltips. */
+export const formatClock = (iso: string | number, withDay = false) =>
+  (withDay ? dayAndTime : timeOfDay).format(new Date(iso));

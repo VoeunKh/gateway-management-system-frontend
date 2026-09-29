@@ -25,6 +25,13 @@ paths:
           schema:
             type: string
             enum: [active, finished]
+        - name: sn
+          in: query
+          description: >
+            Only rollouts that include this gateway; each wave then lists just that
+            gateway, so the device page can show its own progress
+          schema:
+            type: string
       responses:
         '200':
           description: The rollouts
@@ -99,6 +106,38 @@ components:
       bearerFormat: JWT
 
   schemas:
+    DeviceExtras:
+      type: object
+      description: >
+        Fields the device page shows that DeviceDetail does not carry yet; merged into
+        the DeviceDetail response.
+      properties:
+        os:
+          type: string
+          example: OpenWrt 23.05.4
+        uptime_s:
+          type: integer
+          nullable: true
+          description: Seconds since boot; null while offline
+        interfaces:
+          type: array
+          items:
+            $ref: '#/components/schemas/InterfaceStatus'
+
+    InterfaceStatus:
+      type: object
+      properties:
+        type:
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+          example: wwan0
+        link_up:
+          type: boolean
+      required: [type, identifier]
+
     RolloutState:
       type: string
       enum: [running, soaking, paused, completed, aborted]
@@ -144,6 +183,10 @@ components:
                 type: string
               state:
                 $ref: '#/components/schemas/RolloutDeviceState'
+              progress:
+                type: integer
+                nullable: true
+                description: Download progress 0..100 while state is downloading
             required: [sn, state]
       required: [percent]
 
