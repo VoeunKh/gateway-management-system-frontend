@@ -5,7 +5,8 @@ UCI config push, sysupgrade rollouts, alerts, users. Roles: Admin, Release engin
 Viewer. Built from the approved sample console.
 
 ## Stack (fixed)
-Preact 10 + TypeScript (React API via preact/compat), Vite 5, wouter (routing),
+Preact 10 + TypeScript (React API via preact/compat), Vite 5, wouter (routing, via its
+Preact build wouter-preact),
 TanStack Query v5 (server data), zod (parsing), plain CSS custom properties,
 inline SVG for charts and icons, Vitest + Testing Library + MSW, Playwright.
 

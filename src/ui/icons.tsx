@@ -79,6 +79,16 @@ export const IconUser = makeIcon(
 
 export const IconChevron = makeIcon(<path d="m9 6 6 6-6 6" />);
 
+export const IconHome = makeIcon(<path d="M4 11.5 12 5l8 6.5M6.5 10v9.5h11V10M10 19.5v-5h4v5" />);
+
+export const IconSliders = makeIcon(
+  <path d="M5 6h8M17 6h2M5 12h2M11 12h8M5 18h10M19 18h0M15 4v4M9 10v4M17 16v4" />,
+);
+
+export const IconSignOut = makeIcon(
+  <path d="M14 5h4a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h9" />,
+);
+
 export const ICONS = {
   gateway: IconGateway,
   search: IconSearch,
@@ -92,4 +102,7 @@ export const ICONS = {
   clock: IconClock,
   user: IconUser,
   chevron: IconChevron,
+  home: IconHome,
+  sliders: IconSliders,
+  signOut: IconSignOut,
 } as const;

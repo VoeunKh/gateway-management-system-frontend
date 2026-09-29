@@ -72,7 +72,7 @@ Each card has: **Depends on**, **Goal**, **What to do**, **Unit tests**, **Resul
 
 ## Stack (fixed — do not swap)
 
-Preact 10 + TypeScript, Vite 5, wouter, TanStack Query v5, zod, plain CSS with custom
+Preact 10 + TypeScript, Vite 5, wouter (its Preact build, `wouter-preact`), TanStack Query v5, zod, plain CSS with custom
 properties, inline SVG charts and icons, Vitest + Testing Library + MSW, Playwright.
 
 No component library, no Tailwind, no Redux, no Axios, no date library, no chart or icon
@@ -94,8 +94,8 @@ its gzipped size, and must keep the bundle under budget.
 ### Phase 1 (Sep 29–Oct 2)
 
 - [x] UI-01 Project setup, CI stage and size gate
-- [ ] UI-02 Design tokens and ui components
-- [ ] UI-03 API client, generated types, MSW fixtures
+- [x] UI-02 Design tokens and ui components
+- [x] UI-03 API client, generated types, MSW fixtures
 - [ ] UI-04 App shell, router, session, login, role guards
 
 ### Phase 2 (Oct 5–9)
