@@ -17,7 +17,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:8080',
+      // The backend's `make dev-up`; the dev container points this at the Docker host.
+      '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:8080',
     },
   },
   build: {

@@ -19,6 +19,7 @@ npm run dev | npm run build | npm test | npm run lint | npm run typecheck
 npm run size      # size-limit, blocking
 npm run gen:api   # openapi-typescript from api/openapi.yaml (vendored spec) into src/api/types.gen.ts
 npm run e2e       # Playwright
+make dev | make check | make prod-up   # Docker: dev server, all checks, production image (make lists all)
 
 ## Rules
 - No new dependencies. No component library, Tailwind, Redux, Axios, date library,

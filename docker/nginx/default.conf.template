@@ -1,0 +1,50 @@
+# Rendered by the nginx image's entrypoint (envsubst): ${API_UPSTREAM} and
+# ${CLIENT_MAX_BODY_SIZE} are filled in; nginx's own $variables are left alone.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    server_tokens off;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    # Same-origin API: the HttpOnly refresh cookie (path /api/v1/auth) just works.
+    location /api/ {
+        # The name is looked up once at start-up (via /etc/hosts too, which is how
+        # host.docker.internal works on Linux). The backend itself need not be running.
+        # If its address changes later, restart the console: `make prod-restart`.
+        proxy_pass ${API_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Firmware images are uploaded through here (UI-10).
+        client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+        proxy_request_buffering off;
+        proxy_read_timeout 120s;
+    }
+
+    # Hashed file names: cache forever.
+    location /assets/ {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # Everything else is the single-page app; index.html is always revalidated.
+    location / {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri /index.html;
+    }
+}

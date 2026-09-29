@@ -1,0 +1,28 @@
+# Production: the static bundle served by non-root nginx, /api proxied to the backend.
+# Build and start with `make prod-up`; settings come from .env (see .env.example).
+name: gwfleet-web
+
+services:
+  web:
+    image: ${IMAGE:-gwfleet-web}:${TAG:-latest}
+    build:
+      context: .
+      target: prod
+    ports:
+      - '${WEB_PORT:-8081}:8080'
+    environment:
+      # scheme://host:port of the backend, no path. The default reaches the Docker host.
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:8080}
+      CLIENT_MAX_BODY_SIZE: ${CLIENT_MAX_BODY_SIZE:-512m}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    restart: unless-stopped
+    read_only: true
+    # Writable scratch space for nginx (uid 101): its rendered config and temp files.
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=0755
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0755
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
