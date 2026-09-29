@@ -86,7 +86,7 @@ its gzipped size, and must keep the bundle under budget.
 
 ### Phase 1 (Sep 29–Oct 2)
 
-- [ ] UI-01 Project setup, CI stage and size gate
+- [x] UI-01 Project setup, CI stage and size gate
 - [ ] UI-02 Design tokens and ui components
 - [ ] UI-03 API client, generated types, MSW fixtures
 - [ ] UI-04 App shell, router, session, login, role guards

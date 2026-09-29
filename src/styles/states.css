@@ -1,0 +1,50 @@
+/* Screen states */
+.skeleton {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+}
+.skeleton__bar {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+      90deg,
+      var(--skeleton) 25%,
+      var(--skeleton-shine) 50%,
+      var(--skeleton) 75%
+    )
+    0 0 / 200% 100%;
+  animation: shine 1.4s ease-in-out infinite;
+}
+.skeleton__bar:last-child:not(:first-child) {
+  width: 60%;
+}
+@keyframes shine {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton__bar,
+  .spinner {
+    animation: none;
+  }
+}
+.state {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-7) var(--space-4);
+  text-align: center;
+}
+.state p {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--text-muted);
+}
+.state__icon {
+  color: var(--text-muted);
+}
+.state--error .state__icon {
+  color: var(--danger);
+}

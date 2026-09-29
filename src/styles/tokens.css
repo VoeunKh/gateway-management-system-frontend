@@ -1,0 +1,110 @@
+/* Design tokens. Components use these only; to adopt the sample console's look,
+   change the values here and nothing else. */
+:root {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgb(16 24 40 / 0.08);
+  --shadow-2: 0 8px 24px rgb(16 24 40 / 0.16);
+
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eef0f3;
+  --border: #d5d9e0;
+  --text: #1a1d23;
+  --text-muted: #555e6b;
+  --accent: #1f5fd6;
+  --accent-hover: #184bab;
+  --accent-contrast: #ffffff;
+  --focus: #1f5fd6;
+  --overlay: rgb(16 24 40 / 0.45);
+  --ok: #17702f;
+  --ok-bg: #e3f3e8;
+  --warn: #8a5a00;
+  --warn-bg: #fdf1d2;
+  --danger: #b42318;
+  --danger-bg: #fdeceb;
+  --info: #0b5c9e;
+  --info-bg: #e3effa;
+  --neutral: #474f5c;
+  --neutral-bg: #eceef1;
+  --skeleton: #e3e6eb;
+  --skeleton-shine: #f1f3f6;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0f1216;
+    --surface: #171b21;
+    --surface-2: #1f242c;
+    --border: #2f3640;
+    --text: #e6e9ee;
+    --text-muted: #9ba5b3;
+    --accent: #6ea0ff;
+    --accent-hover: #93b8ff;
+    --accent-contrast: #0b1220;
+    --focus: #93b8ff;
+    --overlay: rgb(0 0 0 / 0.6);
+    --ok: #5ccf7c;
+    --ok-bg: #13301d;
+    --warn: #e6b84a;
+    --warn-bg: #33290c;
+    --danger: #ff8078;
+    --danger-bg: #3d1715;
+    --info: #6cb2ff;
+    --info-bg: #102a47;
+    --neutral: #b7bfca;
+    --neutral-bg: #262c35;
+    --skeleton: #232932;
+    --skeleton-shine: #2d343e;
+    --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-2: 0 8px 24px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #0f1216;
+  --surface: #171b21;
+  --surface-2: #1f242c;
+  --border: #2f3640;
+  --text: #e6e9ee;
+  --text-muted: #9ba5b3;
+  --accent: #6ea0ff;
+  --accent-hover: #93b8ff;
+  --accent-contrast: #0b1220;
+  --focus: #93b8ff;
+  --overlay: rgb(0 0 0 / 0.6);
+  --ok: #5ccf7c;
+  --ok-bg: #13301d;
+  --warn: #e6b84a;
+  --warn-bg: #33290c;
+  --danger: #ff8078;
+  --danger-bg: #3d1715;
+  --info: #6cb2ff;
+  --info-bg: #102a47;
+  --neutral: #b7bfca;
+  --neutral-bg: #262c35;
+  --skeleton: #232932;
+  --skeleton-shine: #2d343e;
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-2: 0 8px 24px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
