@@ -33,7 +33,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**'],
-      exclude: ['src/**/*.test.{ts,tsx}', 'src/api/types.gen.ts', 'src/main.tsx'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/api/types.gen.ts',
+        'src/main.tsx',
+        'src/ui/gallery/**',
+        'src/ui/index.ts',
+      ],
     },
   },
 });

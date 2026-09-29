@@ -1,0 +1,139 @@
+/* Button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn:hover {
+  background: var(--surface-2);
+}
+.btn--sm {
+  min-height: 28px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
+}
+.btn--primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+.btn--danger {
+  border-color: var(--danger);
+  background: var(--surface);
+  color: var(--danger);
+}
+.btn--danger:hover {
+  background: var(--danger-bg);
+}
+.btn--ghost {
+  border-color: transparent;
+  background: transparent;
+}
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn[aria-disabled='true']:hover {
+  background: var(--surface);
+}
+.btn--primary[aria-disabled='true']:hover {
+  background: var(--accent);
+}
+.btn--ghost[aria-disabled='true']:hover {
+  background: transparent;
+}
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Badge: a dot plus a text label, never colour alone */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.badge--ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.badge--warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.badge--danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+.badge--info {
+  background: var(--info-bg);
+  color: var(--info);
+}
+.badge--neutral {
+  background: var(--neutral-bg);
+  color: var(--neutral);
+}
+
+/* Field */
+.field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+}
+.field label {
+  font-weight: 600;
+}
+.field input {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.field input[aria-invalid='true'] {
+  border-color: var(--danger);
+}
+.field__hint {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+.field__error {
+  color: var(--danger);
+  font-size: var(--text-xs);
+}
