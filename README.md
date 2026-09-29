@@ -26,7 +26,14 @@ npm run e2e        # Playwright against the production build
 CI (`.github/workflows/web.yml`) runs lint, typecheck, test, build and size on every push
 to `main` and every pull request, skipping docs-only changes.
 
-No new dependencies beyond the fixed stack below.
+No new dependencies beyond the fixed stack below. `package.json` overrides `react` with
+`@preact/compat`, so React-based libraries (TanStack Query) run on Preact and real React
+is never installed.
+
+`api/openapi.yaml` is kept byte-for-byte as the backend publishes it (Prettier skips it).
+After updating it, run `npm run gen:api` and commit `src/api/types.gen.ts`; CI fails if
+the two disagree. Unit tests run against the mock API in `tests/msw` (300 generated
+gateways, 5 models, and test users such as `admin@gwfleet.test` / `admin-pass`).
 
 | File | What it is |
 | --- | --- |
