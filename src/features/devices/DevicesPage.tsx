@@ -1,4 +1,4 @@
-import { useMemo } from 'preact/hooks';
+import { useEffect, useMemo } from 'preact/hooks';
 import { useLocation, useSearch } from 'wouter-preact';
 import { formatCount } from '@/lib/format';
 import { Button, EmptyState, ErrorState, Skeleton } from '@/ui';
@@ -6,6 +6,7 @@ import { DeviceFilterBar } from './DeviceFilterBar';
 import { DeviceTable } from './DeviceTable';
 import { FilterChips } from './FilterChips';
 import { describeFilters, hasFilters, parseFilters, serializeFilters } from './filters';
+import { rememberListSearch } from './listState';
 import type { DeviceFilters } from './filters';
 import { useDevices } from './useDevices';
 
@@ -16,6 +17,8 @@ export function DevicesPage() {
   const setFilters = (next: DeviceFilters) =>
     navigate(`/devices${serializeFilters(next)}`, { replace: true });
   const list = useDevices(filters);
+  // So the device page's back link returns to this exact view.
+  useEffect(() => rememberListSearch(search), [search]);
   const clear = () => setFilters({});
 
   let body;

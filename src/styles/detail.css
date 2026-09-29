@@ -1,0 +1,89 @@
+/* Cards and definition lists */
+.card {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.card__head h2 {
+  margin: 0;
+  font-size: var(--text-md);
+}
+.details {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.details__row {
+  display: grid;
+  grid-template-columns: minmax(110px, 40%) 1fr;
+  gap: var(--space-3);
+}
+.details dt {
+  color: var(--text-muted);
+}
+.details dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Device detail */
+.back-link {
+  display: inline-block;
+  margin-bottom: var(--space-3);
+}
+.detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.detail-head h1 {
+  margin-bottom: var(--space-2);
+  overflow-wrap: anywhere;
+}
+.detail-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  color: var(--text-muted);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.detail-grid__wide {
+  grid-column: 1 / -1;
+}
+.config {
+  margin: var(--space-4) 0 0;
+}
+.config pre {
+  max-height: 420px;
+  overflow: auto;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  font-size: var(--text-xs);
+  line-height: 1.6;
+}
+@media (max-width: 819px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

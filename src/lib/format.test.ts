@@ -1,4 +1,12 @@
-import { formatCount, formatDateTime, formatRelative } from './format';
+import {
+  formatBytes,
+  formatCelsius,
+  formatCount,
+  formatDateTime,
+  formatDbm,
+  formatPercent,
+  formatRelative,
+} from './format';
 
 const NOW = Date.parse('2026-09-29T08:00:00Z');
 const ago = (seconds: number) => new Date(NOW - seconds * 1000).toISOString();
@@ -30,5 +38,31 @@ describe('number and date formatting', () => {
         new Date(iso),
       ),
     );
+  });
+});
+
+describe('unit formatting', () => {
+  it('uses Intl units', () => {
+    const unit = (u: string, v: number) =>
+      new Intl.NumberFormat(undefined, {
+        style: 'unit',
+        unit: u,
+        unitDisplay: 'short',
+        maximumFractionDigits: 1,
+      }).format(v);
+    expect(formatCelsius(71.25)).toBe(
+      new Intl.NumberFormat(undefined, {
+        style: 'unit',
+        unit: 'celsius',
+        maximumFractionDigits: 1,
+      }).format(71.25),
+    );
+    expect(formatPercent(42)).toBe(
+      new Intl.NumberFormat(undefined, { style: 'percent' }).format(0.42),
+    );
+    expect(formatDbm(-87)).toBe('-87 dBm');
+    expect(formatBytes(512)).toBe(unit('byte', 512));
+    expect(formatBytes(7_900_000)).toBe(unit('megabyte', 7.9));
+    expect(formatBytes(1_234_000_000)).toBe(unit('gigabyte', 1.234));
   });
 });
