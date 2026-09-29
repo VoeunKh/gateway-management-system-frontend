@@ -117,7 +117,8 @@
 .field label {
   font-weight: 600;
 }
-.field input {
+.field input,
+.field select {
   min-height: 36px;
   padding: 0 var(--space-3);
   border: 1px solid var(--border);
@@ -125,6 +126,9 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
+}
+.field select {
+  padding-right: var(--space-2);
 }
 .field input[aria-invalid='true'] {
   border-color: var(--danger);
@@ -136,4 +140,51 @@
 .field__error {
   color: var(--danger);
   font-size: var(--text-xs);
+}
+
+/* Toggle: a checkbox drawn as a switch */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.toggle__track {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.toggle__track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.15s;
+}
+.toggle input:checked + .toggle__track {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.toggle input:checked + .toggle__track::after {
+  background: var(--accent-contrast);
+  transform: translateX(14px);
+}
+.toggle input:focus-visible + .toggle__track {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
 }
