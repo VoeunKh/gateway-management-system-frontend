@@ -56,6 +56,7 @@ async function send(path: string, options: RequestOptions, token: string | null)
  */
 function refreshAccessToken(): Promise<boolean> {
   refreshing ??= (async () => {
+    const before = getAccessToken();
     try {
       const response = await send('/auth/refresh', { method: 'POST' }, null);
       if (!response.ok) throw await toApiError(response);
@@ -63,6 +64,8 @@ function refreshAccessToken(): Promise<boolean> {
       setAccessToken(body.access_token);
       return true;
     } catch {
+      // Someone signed in while this refresh was failing: keep their new session.
+      if (getAccessToken() !== before) return true;
       setAccessToken(null);
       authEvents.dispatchEvent(new Event(SESSION_EXPIRED));
       return false;

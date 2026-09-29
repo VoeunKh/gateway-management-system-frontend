@@ -91,6 +91,34 @@ describe('request', () => {
     expect(expired).toHaveBeenCalledOnce();
   });
 
+  it('keeps a session that signed in while a refresh was failing', async () => {
+    let failRefresh = (): void => undefined;
+    let refreshStarted = false;
+    server.use(
+      http.get(api('/things'), () =>
+        HttpResponse.json({ error: { code: 'unauthorized', message: 'x' } }, { status: 401 }),
+      ),
+      http.post(api('/auth/refresh'), async () => {
+        refreshStarted = true;
+        await new Promise<void>((resolve) => (failRefresh = resolve));
+        return HttpResponse.json(
+          { error: { code: 'unauthorized', message: 'no' } },
+          { status: 401 },
+        );
+      }),
+    );
+    const expired = vi.fn();
+    authEvents.addEventListener(SESSION_EXPIRED, expired);
+    const pending = request('/things').catch(() => undefined);
+    await vi.waitFor(() => expect(refreshStarted).toBe(true));
+    setAccessToken('signed-in-meanwhile');
+    failRefresh();
+    await pending;
+    authEvents.removeEventListener(SESSION_EXPIRED, expired);
+    expect(getAccessToken()).toBe('signed-in-meanwhile');
+    expect(expired).not.toHaveBeenCalled();
+  });
+
   it('does not refresh when the login itself answers 401', async () => {
     const calls = expiringToken();
     server.use(

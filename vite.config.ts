@@ -24,6 +24,15 @@ export default defineConfig({
     target: ['chrome120', 'edge120', 'firefox120', 'safari17'],
     // Read by .size-limit.js to tell initial chunks from lazy ones.
     manifest: true,
+    rollupOptions: {
+      // TanStack Query marks files "use client" for React Server Components; meaningless here.
+      onwarn(warning, warn) {
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE' && warning.message.includes('use client')) {
+          return;
+        }
+        warn(warning);
+      },
+    },
   },
   test: {
     environment: 'jsdom',
