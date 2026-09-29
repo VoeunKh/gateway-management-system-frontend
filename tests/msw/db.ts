@@ -1,7 +1,9 @@
+import type { Schemas } from '@/api/endpoints';
 import type { components } from '@/api/types.gen';
 import { MODELS, SITES, USERS, buildConfigVersions } from './fixtures/catalog';
 import type { FixtureModel, FixtureUser } from './fixtures/catalog';
 import { PACKAGES, buildDevices, expectedVersion } from './fixtures/devices';
+import { buildAlerts, buildRollouts } from './fixtures/operations';
 
 type S = components['schemas'];
 
@@ -12,6 +14,9 @@ export interface MockDb {
   configs: Map<string, S['ConfigVersion'][]>;
   devices: S['DeviceDetail'][];
   manifests: Map<string, S['FirmwareManifest']>;
+  rollouts: Schemas['Rollout'][];
+  /** Newest first. */
+  alerts: Schemas['Alert'][];
   /** access token -> user id */
   tokens: Map<string, string>;
   /** Stands in for the HttpOnly refresh cookie: whose session refresh would renew. */
@@ -36,13 +41,16 @@ function fresh(): MockDb {
       });
     }
   }
+  const devices = buildDevices(targets);
   return {
     users: structuredClone(USERS),
     models: structuredClone(MODELS),
     sites: structuredClone(SITES),
     configs,
-    devices: buildDevices(targets),
+    devices,
     manifests,
+    rollouts: buildRollouts(devices),
+    alerts: buildAlerts(devices),
     tokens: new Map(),
     refreshUserId: null,
     tokenSerial: 0,

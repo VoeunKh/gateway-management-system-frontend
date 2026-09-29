@@ -1,6 +1,6 @@
 import type { Schemas } from '@/api/endpoints';
-import { Badge, Card, Table } from '@/ui';
-import { PACKAGE_STATUS, interfaceLabel } from './labels';
+import { Card, PackageStatusBadge, Table } from '@/ui';
+import { interfaceLabel } from './labels';
 
 type Device = Schemas['DeviceDetail'];
 
@@ -50,11 +50,7 @@ export function PackagesCard({ device }: { device: Device }) {
           {
             key: 'status',
             header: 'Status',
-            cell: (pkg) => (
-              <Badge tone={PACKAGE_STATUS[pkg.status].tone}>
-                {PACKAGE_STATUS[pkg.status].label}
-              </Badge>
-            ),
+            cell: (pkg) => <PackageStatusBadge status={pkg.status} />,
           },
         ]}
       />

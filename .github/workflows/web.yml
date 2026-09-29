@@ -17,8 +17,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Generated API types match api/openapi.yaml
-        run: npm run gen:api && git diff --exit-code -- src/api/types.gen.ts
+      - name: Generated API types match api/openapi.yaml and api/proposed.yaml
+        run: npm run gen:api && git diff --exit-code -- src/api/types.gen.ts src/api/proposed.gen.ts
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

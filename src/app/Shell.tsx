@@ -6,6 +6,7 @@ import {
   Button,
   IconGateway,
   IconHome,
+  IconPackage,
   IconSignOut,
   IconSliders,
   IconUpload,
@@ -23,8 +24,9 @@ interface NavItem {
 const NAV: NavItem[] = [
   { href: '/', label: 'Overview', icon: <IconHome /> },
   { href: '/devices', label: 'Devices', icon: <IconGateway /> },
-  { href: '/config', label: 'Configuration', icon: <IconSliders /> },
   { href: '/firmware', label: 'Firmware', icon: <IconUpload /> },
+  { href: '/packages', label: 'Packages', icon: <IconPackage /> },
+  { href: '/config', label: 'Configuration', icon: <IconSliders /> },
   { href: '/alerts', label: 'Alerts', icon: <IconWarning /> },
   { href: '/users', label: 'Users', icon: <IconUser />, adminOnly: true },
 ];

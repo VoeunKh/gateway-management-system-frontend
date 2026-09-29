@@ -456,7 +456,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Update a model's name */
+        /** Update a model's name and hardware facts */
         patch: {
             parameters: {
                 query?: never;
@@ -1109,6 +1109,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fleet summary for the console's landing screen
+         * @description Health is computed from each device's newest telemetry sample by the same rule the device list filters on, so these counts always agree with GET /devices?health=. active_rollouts and open_alerts are real counts and read 0 until the rollout and alert modules land.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The fleet summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Overview"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/devices/{sn}/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sn: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One device's telemetry series, bucketed for a chart
+         * @description Buckets are epoch-aligned, so the same step gives the same bucket boundaries on every request. A bucket appears only when the device reported samples in it, and signal_dbm is null for a bucket in which none of them reported one. The series is capped at 2,000 points: a range and step that would exceed the cap is served at a coarser step, and the step actually used comes back in the response.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Start of the range, RFC 3339. Defaults to 24 h before to. */
+                    from?: string;
+                    /** @description End of the range, RFC 3339. Defaults to now. */
+                    to?: string;
+                    /** @description Bucket size in seconds. Defaults to 60. */
+                    step?: number;
+                };
+                header?: never;
+                path: {
+                    sn: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The telemetry series */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MetricsSeries"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                /** @description from or to is not RFC 3339, from is not before to, the range exceeds 30 days, or step is outside 1..86400 (code validation_failed) */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/devices/{sn}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sn: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One device's events and jobs, newest first
+         * @description device_events and jobs merged into one feed, ordered by creation time. Paging is a cursor: pass the next_cursor of the previous page back as cursor.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description next_cursor of the previous page */
+                    cursor?: string;
+                    /** @description Page size, default 50, maximum 200 */
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    sn: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description One page of the feed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeviceHistory"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                /** @description cursor is not one this API handed out, or limit is not a positive integer (code validation_failed) */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dl/{token}": {
         parameters: {
             query?: never;
@@ -1266,13 +1426,31 @@ export interface components {
         Model: {
             id: string;
             name: string;
+            /** @description SoC the model's gateways run; null when the hardware has not been recorded */
+            soc?: string | null;
+            /** @description RAM in the model's gateways, in MB; null when the hardware has not been recorded */
+            ram_mb?: number | null;
+            /** @description Flash in the model's gateways, in MB; null when the hardware has not been recorded */
+            flash_mb?: number | null;
         };
         CreateModelRequest: {
             id: string;
             name: string;
+            /** @description SoC of the model's gateways; optional */
+            soc?: string | null;
+            /** @description RAM in the model's gateways, in MB; optional */
+            ram_mb?: number | null;
+            /** @description Flash in the model's gateways, in MB; optional */
+            flash_mb?: number | null;
         };
         UpdateModelRequest: {
             name: string;
+            /** @description New SoC; omit to leave the recorded one alone */
+            soc?: string | null;
+            /** @description New RAM in MB; omit to leave the recorded one alone */
+            ram_mb?: number | null;
+            /** @description New flash in MB; omit to leave the recorded one alone */
+            flash_mb?: number | null;
         };
         Site: {
             /** Format: uuid */
@@ -1378,6 +1556,12 @@ export interface components {
         DeviceDetail: components["schemas"]["Device"] & {
             /** Format: date-time */
             created_at: string;
+            /** @description SoC of the device's model; null when the model's hardware has not been recorded. Detail only: the device list does not carry it */
+            soc?: string | null;
+            /** @description RAM of the device's model, in MB; null when unrecorded. Detail only */
+            ram_mb?: number | null;
+            /** @description Flash of the device's model, in MB; null when unrecorded. Detail only */
+            flash_mb?: number | null;
             interfaces: components["schemas"]["HWInterface"][];
             last_metrics?: components["schemas"]["LastMetrics"] | null;
             packages: components["schemas"]["PackageStatus"][];
@@ -1429,6 +1613,81 @@ export interface components {
             site_id?: string | null;
             /** @enum {string} */
             lifecycle?: "active" | "decommissioned" | "bricked";
+        };
+        Overview: {
+            /** @description Devices in the inventory */
+            devices: number;
+            health: components["schemas"]["OverviewHealth"];
+            models: components["schemas"]["OverviewModel"][];
+            /** @description Rollouts not completed and not aborted; 0 until rollouts land */
+            active_rollouts: number;
+            /** @description Alerts not resolved; 0 until the alert evaluator lands */
+            open_alerts: number;
+        };
+        /** @description Devices per health status; all four are always present. */
+        OverviewHealth: {
+            healthy: number;
+            warning: number;
+            critical: number;
+            offline: number;
+        };
+        OverviewModel: {
+            model_id: string;
+            model_name: string;
+            devices: number;
+            firmware: components["schemas"]["FirmwareCount"][];
+        };
+        FirmwareCount: {
+            /** @description The firmware the devices report; empty for a device that has not reported State yet */
+            fw_version: string;
+            devices: number;
+        };
+        MetricsSeries: {
+            sn: string;
+            /** Format: date-time */
+            from: string;
+            /** Format: date-time */
+            to: string;
+            /** @description Bucket size in seconds the series is served at: the requested step, or a coarser one when the range would otherwise exceed 2,000 points */
+            step: number;
+            points: components["schemas"]["MetricsPoint"][];
+        };
+        /** @description One bucket: the mean of the samples in it. signal_dbm is null when no sample in the bucket reported one, which is not a reading of 0. */
+        MetricsPoint: {
+            /**
+             * Format: date-time
+             * @description The bucket's start
+             */
+            time: string;
+            cpu_pct: number;
+            mem_pct: number;
+            temp_c: number;
+            tmp_free_kb: number;
+            signal_dbm: number | null;
+            rx_bytes: number;
+            tx_bytes: number;
+        };
+        DeviceHistory: {
+            entries: components["schemas"]["HistoryEntry"][];
+            /** @description Pass as the cursor of the next request; absent on the last page */
+            next_cursor?: string;
+        };
+        /** @description One line of the feed: a device event or a job. state, progress and error_code belong to a job and are null for an event. */
+        HistoryEntry: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "event" | "job";
+            /** @description The event's or job's type tag */
+            type: string;
+            /** @description Job state; null for an event */
+            state: string | null;
+            progress: number | null;
+            error_code: number | null;
+            /** @description A JSON value: an event's detail object, or a job's readable detail text as a JSON string */
+            detail: unknown;
+            /** Format: date-time */
+            created_at: string;
         };
     };
     responses: {

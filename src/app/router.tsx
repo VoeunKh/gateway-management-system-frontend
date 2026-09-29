@@ -20,6 +20,9 @@ const ConfigPage = lazy(() =>
 const FirmwarePage = lazy(() =>
   import('@/features/firmware/FirmwarePage').then((m) => ({ default: m.FirmwarePage })),
 );
+const PackagesPage = lazy(() =>
+  import('@/features/packages/PackagesPage').then((m) => ({ default: m.PackagesPage })),
+);
 const AlertsPage = lazy(() =>
   import('@/features/alerts/AlertsPage').then((m) => ({ default: m.AlertsPage })),
 );
@@ -66,6 +69,7 @@ function SignedIn() {
           <Route path="/devices/:sn">{(params) => <DeviceDetailPage sn={params.sn} />}</Route>
           <Route path="/config" component={ConfigPage} />
           <Route path="/firmware" component={FirmwarePage} />
+          <Route path="/packages" component={PackagesPage} />
           <Route path="/alerts" component={AlertsPage} />
           <Route path="/users">
             <RequireRole min="admin" area="Users">

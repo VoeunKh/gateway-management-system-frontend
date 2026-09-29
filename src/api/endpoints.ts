@@ -1,9 +1,14 @@
 import { request } from './client';
+import type { components as Draft, paths as DraftPaths } from './proposed.gen';
 import type { components, paths } from './types.gen';
 
 // One typed function per endpoint the console uses. Hooks call these; nothing else does.
-export type Schemas = components['schemas'];
+// Schemas covers the published spec and the draft one (api/proposed.yaml) under the same
+// names, so moving a schema from the draft into the spec changes nothing here.
+export type Schemas = components['schemas'] & Draft['schemas'];
 export type DeviceQuery = NonNullable<paths['/devices']['get']['parameters']['query']>;
+export type RolloutQuery = NonNullable<DraftPaths['/rollouts']['get']['parameters']['query']>;
+export type AlertQuery = NonNullable<DraftPaths['/alerts']['get']['parameters']['query']>;
 
 const seg = encodeURIComponent;
 
@@ -71,3 +76,14 @@ export const updateDevice = (sn: string, patch: Schemas['DevicePatch']) =>
   request<Schemas['DeviceDetail']>(`/devices/${seg(sn)}`, { method: 'PATCH', json: patch });
 export const getRenderedConfig = (sn: string) =>
   request<Schemas['RenderedConfig']>(`/devices/${seg(sn)}/config/rendered`);
+
+// Overview
+export const getOverview = () => request<Schemas['Overview']>('/overview');
+
+// Rollouts and alerts (draft spec until the backend publishes them)
+export const listRollouts = (query: RolloutQuery = {}) =>
+  request<Schemas['Rollout'][]>('/rollouts', { query });
+export const listAlerts = (query: AlertQuery = {}) =>
+  request<Schemas['Alert'][]>('/alerts', { query });
+export const ackAlert = (id: string) =>
+  request<Schemas['Alert']>(`/alerts/${seg(id)}/ack`, { method: 'POST' });

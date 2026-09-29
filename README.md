@@ -19,7 +19,7 @@ npm run typecheck
 npm test           # Vitest + Testing Library + MSW (npm run coverage for coverage)
 npm run build
 npm run size       # blocking: fails above the budgets below (run after build)
-npm run gen:api    # api/openapi.yaml -> src/api/types.gen.ts
+npm run gen:api    # api/openapi.yaml -> src/api/types.gen.ts, api/proposed.yaml -> proposed.gen.ts
 npm run e2e        # Playwright flows at 1280 and 375 px, production build + mock API
 ```
 
@@ -66,7 +66,10 @@ is never installed.
 
 `api/openapi.yaml` is kept byte-for-byte as the backend publishes it (Prettier skips it).
 After updating it, run `npm run gen:api` and commit `src/api/types.gen.ts`; CI fails if
-the two disagree. Unit tests run against the mock API in `tests/msw` (300 generated
+the two disagree. Endpoints a screen needs before the backend publishes them go in
+`api/proposed.yaml`, the console's draft (see
+[docs/api-requests.md](docs/api-requests.md)); delete each one there once it appears in
+`api/openapi.yaml`. Unit tests run against the mock API in `tests/msw` (300 generated
 gateways, 5 models, and test users such as `admin@gwfleet.test` / `admin-pass`).
 
 | File | What it is |
@@ -134,7 +137,7 @@ its gzipped size, and must keep the bundle under budget.
 
 ### Phase 2 (Oct 5–9)
 
-- [ ] UI-05 Overview
+- [x] UI-05 Overview (rollout and alert panels on the draft API)
 - [x] UI-06 Device list
 - [x] UI-07 Device detail (sparkline, history and rollout banner wait for API)
 - [ ] UI-08 Remote actions with job tracking
@@ -143,6 +146,7 @@ its gzipped size, and must keep the bundle under budget.
 
 - [ ] UI-09 Configuration: versions, diff, editor, push (all but push done; push waits for API)
 - [ ] UI-10 Firmware and rollouts
+- [x] Packages screen (from the sample console; read-only, on the published `/models/{id}/packages`)
 - [ ] UI-11 Alerts and users (users done; alerts wait for API)
 - [ ] UI-12 Playwright flows, accessibility, responsive, pilot fixes (flows for the built screens run nightly)
 
@@ -166,5 +170,5 @@ and error codes in go-live order: [docs/api-requests.md](docs/api-requests.md).
 
 ## Out of scope for v1
 
-Packages screen, MFA screen, audit log screen, API keys, multi-tenant views, maintenance
+MFA screen, audit log screen, API keys, multi-tenant views, maintenance
 windows, SSE live updates (polling instead), dashboards beyond the overview.

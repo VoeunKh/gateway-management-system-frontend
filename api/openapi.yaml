@@ -18,6 +18,7 @@ tags:
   - name: devices
   - name: configs
   - name: packages
+  - name: overview
   - name: download
 
 paths:
@@ -297,7 +298,7 @@ paths:
           type: string
     patch:
       tags: [models]
-      summary: Update a model's name
+      summary: Update a model's name and hardware facts
       requestBody:
         required: true
         content:
@@ -765,6 +766,129 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /overview:
+    get:
+      tags: [overview]
+      summary: Fleet summary for the console's landing screen
+      description: >
+        Health is computed from each device's newest telemetry sample by the
+        same rule the device list filters on, so these counts always agree
+        with GET /devices?health=. active_rollouts and open_alerts are real
+        counts and read 0 until the rollout and alert modules land.
+      responses:
+        "200":
+          description: The fleet summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Overview"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /devices/{sn}/metrics:
+    parameters:
+      - name: sn
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [devices]
+      summary: One device's telemetry series, bucketed for a chart
+      description: >
+        Buckets are epoch-aligned, so the same step gives the same bucket
+        boundaries on every request. A bucket appears only when the device
+        reported samples in it, and signal_dbm is null for a bucket in which
+        none of them reported one. The series is capped at 2,000 points: a
+        range and step that would exceed the cap is served at a coarser step,
+        and the step actually used comes back in the response.
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start of the range, RFC 3339. Defaults to 24 h before to.
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End of the range, RFC 3339. Defaults to now.
+        - name: step
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 86400
+          description: Bucket size in seconds. Defaults to 60.
+      responses:
+        "200":
+          description: The telemetry series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsSeries"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: >
+            from or to is not RFC 3339, from is not before to, the range
+            exceeds 30 days, or step is outside 1..86400 (code
+            validation_failed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /devices/{sn}/history:
+    parameters:
+      - name: sn
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [devices]
+      summary: One device's events and jobs, newest first
+      description: >
+        device_events and jobs merged into one feed, ordered by creation time.
+        Paging is a cursor: pass the next_cursor of the previous page back as
+        cursor.
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: next_cursor of the previous page
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Page size, default 50, maximum 200
+      responses:
+        "200":
+          description: One page of the feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceHistory"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          description: >
+            cursor is not one this API handed out, or limit is not a positive
+            integer (code validation_failed)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /dl/{token}:
     parameters:
       - name: token
@@ -940,9 +1064,27 @@ components:
       properties:
         id:
           type: string
-          pattern: "^[A-Z0-9-]{2,32}$"
+          pattern: "^[A-Z0-9-]{2,31}$"
         name:
           type: string
+        soc:
+          type: string
+          nullable: true
+          description: >
+            SoC the model's gateways run; null when the hardware has not
+            been recorded
+        ram_mb:
+          type: integer
+          nullable: true
+          description: >
+            RAM in the model's gateways, in MB; null when the hardware has
+            not been recorded
+        flash_mb:
+          type: integer
+          nullable: true
+          description: >
+            Flash in the model's gateways, in MB; null when the hardware
+            has not been recorded
       required: [id, name]
 
     CreateModelRequest:
@@ -950,9 +1092,21 @@ components:
       properties:
         id:
           type: string
-          pattern: "^[A-Z0-9-]{2,32}$"
+          pattern: "^[A-Z0-9-]{2,31}$"
         name:
           type: string
+        soc:
+          type: string
+          nullable: true
+          description: SoC of the model's gateways; optional
+        ram_mb:
+          type: integer
+          nullable: true
+          description: RAM in the model's gateways, in MB; optional
+        flash_mb:
+          type: integer
+          nullable: true
+          description: Flash in the model's gateways, in MB; optional
       required: [id, name]
 
     UpdateModelRequest:
@@ -960,6 +1114,18 @@ components:
       properties:
         name:
           type: string
+        soc:
+          type: string
+          nullable: true
+          description: New SoC; omit to leave the recorded one alone
+        ram_mb:
+          type: integer
+          nullable: true
+          description: New RAM in MB; omit to leave the recorded one alone
+        flash_mb:
+          type: integer
+          nullable: true
+          description: New flash in MB; omit to leave the recorded one alone
       required: [name]
 
     Site:
@@ -1167,6 +1333,25 @@ components:
             created_at:
               type: string
               format: date-time
+            soc:
+              type: string
+              nullable: true
+              description: >
+                SoC of the device's model; null when the model's hardware
+                has not been recorded. Detail only: the device list does
+                not carry it
+            ram_mb:
+              type: integer
+              nullable: true
+              description: >
+                RAM of the device's model, in MB; null when unrecorded.
+                Detail only
+            flash_mb:
+              type: integer
+              nullable: true
+              description: >
+                Flash of the device's model, in MB; null when unrecorded.
+                Detail only
             interfaces:
               type: array
               items:
@@ -1284,6 +1469,165 @@ components:
         lifecycle:
           type: string
           enum: [active, decommissioned, bricked]
+
+    Overview:
+      type: object
+      properties:
+        devices:
+          type: integer
+          description: Devices in the inventory
+        health:
+          $ref: "#/components/schemas/OverviewHealth"
+        models:
+          type: array
+          items:
+            $ref: "#/components/schemas/OverviewModel"
+        active_rollouts:
+          type: integer
+          description: Rollouts not completed and not aborted; 0 until rollouts land
+        open_alerts:
+          type: integer
+          description: Alerts not resolved; 0 until the alert evaluator lands
+      required: [devices, health, models, active_rollouts, open_alerts]
+
+    OverviewHealth:
+      type: object
+      description: Devices per health status; all four are always present.
+      properties:
+        healthy:
+          type: integer
+        warning:
+          type: integer
+        critical:
+          type: integer
+        offline:
+          type: integer
+      required: [healthy, warning, critical, offline]
+
+    OverviewModel:
+      type: object
+      properties:
+        model_id:
+          type: string
+        model_name:
+          type: string
+        devices:
+          type: integer
+        firmware:
+          type: array
+          items:
+            $ref: "#/components/schemas/FirmwareCount"
+      required: [model_id, model_name, devices, firmware]
+
+    FirmwareCount:
+      type: object
+      properties:
+        fw_version:
+          type: string
+          description: >
+            The firmware the devices report; empty for a device that has not
+            reported State yet
+        devices:
+          type: integer
+      required: [fw_version, devices]
+
+    MetricsSeries:
+      type: object
+      properties:
+        sn:
+          type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        step:
+          type: integer
+          description: >
+            Bucket size in seconds the series is served at: the requested
+            step, or a coarser one when the range would otherwise exceed
+            2,000 points
+        points:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricsPoint"
+      required: [sn, from, to, step, points]
+
+    MetricsPoint:
+      type: object
+      description: >
+        One bucket: the mean of the samples in it. signal_dbm is null when no
+        sample in the bucket reported one, which is not a reading of 0.
+      properties:
+        time:
+          type: string
+          format: date-time
+          description: The bucket's start
+        cpu_pct:
+          type: number
+        mem_pct:
+          type: number
+        temp_c:
+          type: number
+        tmp_free_kb:
+          type: number
+        signal_dbm:
+          type: number
+          nullable: true
+        rx_bytes:
+          type: number
+        tx_bytes:
+          type: number
+      required: [time, cpu_pct, mem_pct, temp_c, tmp_free_kb, signal_dbm, rx_bytes, tx_bytes]
+
+    DeviceHistory:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistoryEntry"
+        next_cursor:
+          type: string
+          description: >
+            Pass as the cursor of the next request; absent on the last page
+      required: [entries]
+
+    HistoryEntry:
+      type: object
+      description: >
+        One line of the feed: a device event or a job. state, progress and
+        error_code belong to a job and are null for an event.
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum: [event, job]
+        type:
+          type: string
+          description: The event's or job's type tag
+        state:
+          type: string
+          nullable: true
+          description: Job state; null for an event
+        progress:
+          type: integer
+          nullable: true
+        error_code:
+          type: integer
+          nullable: true
+        detail:
+          nullable: true
+          description: >
+            A JSON value: an event's detail object, or a job's readable
+            detail text as a JSON string
+        created_at:
+          type: string
+          format: date-time
+      required: [id, kind, type, state, progress, error_code, detail, created_at]
 
   responses:
     BadRequest:
