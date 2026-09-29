@@ -17,6 +17,9 @@ export interface MockDb {
   rollouts: Schemas['Rollout'][];
   /** Per-gateway events and jobs, newest first; seeded on first request. */
   history: Map<string, Schemas['HistoryEntry'][]>;
+  jobs: Schemas['Job'][];
+  /** Action types that fail when started, so tests can see the error path. */
+  failActions: Set<Schemas['JobType']>;
   /** Newest first. */
   alerts: Schemas['Alert'][];
   /** access token -> user id */
@@ -53,6 +56,8 @@ function fresh(): MockDb {
     manifests,
     rollouts: buildRollouts(devices),
     history: new Map(),
+    jobs: [],
+    failActions: new Set(),
     alerts: buildAlerts(devices),
     tokens: new Map(),
     refreshUserId: null,

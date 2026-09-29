@@ -1,25 +1,13 @@
 import type { Schemas } from '@/api/endpoints';
 import { formatDateTime, formatRelative } from '@/lib/format';
-import { Badge, Button, Card, ErrorState, Skeleton, Table } from '@/ui';
-import type { Tone } from '@/ui';
+import { Button, Card, ErrorState, JobStateBadge, Skeleton, Table } from '@/ui';
 import { useDeviceHistory } from '../useDeviceTelemetry';
 import { describe, typeLabel } from './historyText';
 
 type Entry = Schemas['HistoryEntry'];
 
-const JOB_STATE: Record<string, { tone: Tone; label: string }> = {
-  pending: { tone: 'neutral', label: 'Pending' },
-  running: { tone: 'info', label: 'Running' },
-  succeeded: { tone: 'ok', label: 'Succeeded' },
-  failed: { tone: 'danger', label: 'Failed' },
-  timed_out: { tone: 'danger', label: 'Timed out' },
-  cancelled: { tone: 'neutral', label: 'Cancelled' },
-};
-
 function StateBadge({ entry }: { entry: Entry }) {
-  if (!entry.state) return null;
-  const state = JOB_STATE[entry.state] ?? { tone: 'neutral' as const, label: entry.state };
-  return <Badge tone={state.tone}>{state.label}</Badge>;
+  return entry.state ? <JobStateBadge state={entry.state} /> : null;
 }
 
 /** Events and jobs for one gateway, newest first. */

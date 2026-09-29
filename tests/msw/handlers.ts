@@ -3,6 +3,7 @@ import { authHandlers } from './handlers/auth';
 import { catalogHandlers } from './handlers/catalog';
 import { configHandlers } from './handlers/configs';
 import { deviceHandlers } from './handlers/devices';
+import { jobHandlers } from './handlers/jobs';
 import { overviewHandlers } from './handlers/overview';
 import { telemetryHandlers } from './handlers/telemetry';
 import { userHandlers } from './handlers/users';
@@ -16,5 +17,6 @@ export const handlers: RequestHandler[] = [
   ...configHandlers,
   ...deviceHandlers,
   ...overviewHandlers,
+  ...jobHandlers,
   ...telemetryHandlers,
 ];

@@ -87,6 +87,189 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/devices/{sn}/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run a remote action on a gateway (admin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    sn: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ActionRequest"];
+                };
+            };
+            responses: {
+                /** @description The job that tracks the action */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Job"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                /** @description action_pending (one of this type is already pending) or device_offline */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A job, polled every 3 s until its state is final */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["JobId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The job */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Job"];
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a job that has not started (admin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["JobId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The cancelled job */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Job"];
+                    };
+                };
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{id}/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download link for the archive a successful logs job uploaded */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["JobId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A short-lived /dl/{token} link */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["JobLogs"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description The job did not succeed, or is not a logs job */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/alerts/{id}/ack": {
         parameters: {
             query?: never;
@@ -147,6 +330,41 @@ export interface components {
             /** @example wwan0 */
             name?: string;
             link_up?: boolean;
+        };
+        ActionRequest: {
+            type: components["schemas"]["JobType"];
+        };
+        /** @enum {string} */
+        JobType: "reboot" | "logs" | "ping";
+        /** @enum {string} */
+        JobState: "pending" | "running" | "succeeded" | "failed" | "timed_out" | "cancelled";
+        Job: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["JobType"];
+            sn: string;
+            state: components["schemas"]["JobState"];
+            /** Format: date-time */
+            created_at: string;
+            /**
+             * Format: date-time
+             * @description Null until the state is final
+             */
+            finished_at: string | null;
+            /** @description 0..100, for the logs upload */
+            progress: number | null;
+            /** @description Ping: "0% loss, avg 42 ms" */
+            detail: string | null;
+            /** @description Set when the job failed or timed out */
+            error: {
+                code: string;
+                message: string;
+            } | null;
+        };
+        JobLogs: {
+            url: string;
+            /** Format: date-time */
+            expires_at: string;
         };
         /** @enum {string} */
         RolloutState: "running" | "soaking" | "paused" | "completed" | "aborted";
@@ -253,7 +471,9 @@ export interface components {
             };
         };
     };
-    parameters: never;
+    parameters: {
+        JobId: string;
+    };
     requestBodies: never;
     headers: never;
     pathItems: never;

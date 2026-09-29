@@ -72,6 +72,102 @@ paths:
         '401':
           $ref: './openapi.yaml#/components/responses/Unauthorized'
 
+  /devices/{sn}/actions:
+    post:
+      tags: [jobs]
+      summary: Run a remote action on a gateway (admin)
+      parameters:
+        - name: sn
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionRequest'
+      responses:
+        '201':
+          description: The job that tracks the action
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: action_pending (one of this type is already pending) or device_offline
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+
+  /jobs/{id}:
+    get:
+      tags: [jobs]
+      summary: A job, polled every 3 s until its state is final
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: The job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+
+  /jobs/{id}/cancel:
+    post:
+      tags: [jobs]
+      summary: Cancel a job that has not started (admin)
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: The cancelled job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          $ref: './openapi.yaml#/components/responses/Conflict'
+
+  /jobs/{id}/logs:
+    get:
+      tags: [jobs]
+      summary: Download link for the archive a successful logs job uploaded
+      parameters:
+        - $ref: '#/components/parameters/JobId'
+      responses:
+        '200':
+          description: A short-lived /dl/{token} link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobLogs'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: The job did not succeed, or is not a logs job
+          content:
+            application/json:
+              schema:
+                $ref: './openapi.yaml#/components/schemas/Error'
+
   /alerts/{id}/ack:
     post:
       tags: [alerts]
@@ -99,6 +195,15 @@ paths:
           $ref: './openapi.yaml#/components/responses/Conflict'
 
 components:
+  parameters:
+    JobId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
   securitySchemes:
     bearerAuth:
       type: http
@@ -137,6 +242,71 @@ components:
         link_up:
           type: boolean
       required: [type, identifier]
+
+    ActionRequest:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/JobType'
+      required: [type]
+
+    JobType:
+      type: string
+      enum: [reboot, logs, ping]
+
+    JobState:
+      type: string
+      enum: [pending, running, succeeded, failed, timed_out, cancelled]
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/JobType'
+        sn:
+          type: string
+        state:
+          $ref: '#/components/schemas/JobState'
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Null until the state is final
+        progress:
+          type: integer
+          nullable: true
+          description: 0..100, for the logs upload
+        detail:
+          type: string
+          nullable: true
+          description: 'Ping: "0% loss, avg 42 ms"'
+        error:
+          nullable: true
+          description: Set when the job failed or timed out
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required: [code, message]
+      required: [id, type, sn, state, created_at, finished_at, progress, detail, error]
+
+    JobLogs:
+      type: object
+      properties:
+        url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+      required: [url, expires_at]
 
     RolloutState:
       type: string

@@ -92,6 +92,14 @@ export const getRenderedConfig = (sn: string) =>
 // Overview
 export const getOverview = () => request<Schemas['Overview']>('/overview');
 
+// Remote actions and jobs (draft spec until the backend publishes them)
+export const createAction = (sn: string, type: Schemas['JobType']) =>
+  request<Schemas['Job']>(`/devices/${seg(sn)}/actions`, { method: 'POST', json: { type } });
+export const getJob = (id: string) => request<Schemas['Job']>(`/jobs/${seg(id)}`);
+export const cancelJob = (id: string) =>
+  request<Schemas['Job']>(`/jobs/${seg(id)}/cancel`, { method: 'POST' });
+export const getJobLogs = (id: string) => request<Schemas['JobLogs']>(`/jobs/${seg(id)}/logs`);
+
 // Rollouts and alerts (draft spec until the backend publishes them)
 export const listRollouts = (query: RolloutQuery = {}) =>
   request<Schemas['Rollout'][]>('/rollouts', { query });
