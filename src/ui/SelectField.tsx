@@ -3,6 +3,8 @@ import { useId } from 'preact/hooks';
 export interface SelectOption {
   value: string;
   label: string;
+  /** Shown but not choosable; the label should say why. */
+  disabled?: boolean;
 }
 
 export interface SelectFieldProps {
@@ -25,7 +27,7 @@ export function SelectField({ label, value, options, onChange, disabled }: Selec
         onChange={(event) => onChange(event.currentTarget.value)}
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
         ))}

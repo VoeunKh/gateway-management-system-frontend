@@ -9,6 +9,8 @@ export const POLL_MS = {
   /** The overview's fleet board: every gateway, two pages of 200 at most. */
   board: 60_000,
   alerts: 30_000,
+  /** The rail's open-alert count, on every screen; the Alerts page itself uses `alerts`. */
+  alertBadge: 60_000,
   devices: 30_000,
   metrics: 60_000,
 } as const;

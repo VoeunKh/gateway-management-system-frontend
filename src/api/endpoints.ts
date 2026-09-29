@@ -1,4 +1,5 @@
-import { request } from './client';
+import { request, upload } from './client';
+import type { UploadOptions } from './client';
 import type { components as Draft, paths as DraftPaths } from './proposed.gen';
 import type { components, paths } from './types.gen';
 
@@ -113,7 +114,29 @@ export const getJobLogs = (id: string) => request<Schemas['JobLogs']>(`/jobs/${s
 // Rollouts and alerts (draft spec until the backend publishes them)
 export const listRollouts = (query: RolloutQuery = {}) =>
   request<Schemas['Rollout'][]>('/rollouts', { query });
+export const getRollout = (id: string) => request<Schemas['Rollout']>(`/rollouts/${seg(id)}`);
+export const previewRollout = (body: Schemas['RolloutRequest']) =>
+  request<Schemas['RolloutPreview']>('/rollouts/preview', { method: 'POST', json: body });
+export const createRollout = (body: Schemas['RolloutRequest']) =>
+  request<Schemas['Rollout']>('/rollouts', { method: 'POST', json: body });
+export const rolloutAction = (id: string, action: 'pause' | 'resume' | 'abort') =>
+  request<Schemas['Rollout']>(`/rollouts/${seg(id)}/${action}`, { method: 'POST' });
+
+// Firmware images (draft spec)
+export const listFirmware = (model?: string) =>
+  request<Schemas['FirmwareImage'][]>('/firmware', { query: { model } });
+export const uploadFirmware = (form: FormData, options?: UploadOptions) =>
+  upload<Schemas['FirmwareImage']>('/firmware', form, options);
+export const blockFirmware = (id: string, reason?: string) =>
+  request<Schemas['FirmwareImage']>(`/firmware/${seg(id)}/block`, {
+    method: 'POST',
+    json: { reason },
+  });
+export const unblockFirmware = (id: string) =>
+  request<Schemas['FirmwareImage']>(`/firmware/${seg(id)}/unblock`, { method: 'POST' });
+
 export const listAlerts = (query: AlertQuery = {}) =>
   request<Schemas['Alert'][]>('/alerts', { query });
+export const listAlertRules = () => request<Schemas['AlertRule'][]>('/alerts/rules');
 export const ackAlert = (id: string) =>
   request<Schemas['Alert']>(`/alerts/${seg(id)}/ack`, { method: 'POST' });

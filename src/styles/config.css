@@ -156,3 +156,20 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
+/* Forms with several fields (dialogs, the rollout planner) */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.rollout-plan {
+  margin: 0 0 var(--space-4);
+}
+.rollout-plan--error {
+  color: var(--danger);
+}
+.rollout-plan--stale {
+  opacity: 0.55;
+}

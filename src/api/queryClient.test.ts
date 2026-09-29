@@ -27,6 +27,7 @@ describe('query client', () => {
       push: 3_000,
       board: 60_000,
       alerts: 30_000,
+      alertBadge: 60_000,
       devices: 30_000,
       metrics: 60_000,
     });

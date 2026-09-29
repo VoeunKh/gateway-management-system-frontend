@@ -8,7 +8,7 @@ describe('routes', () => {
     ['/devices', 'Devices'],
     ['/devices/GW300-0007', 'GW300-0007'],
     ['/config', 'Configuration'],
-    ['/firmware', 'Firmware'],
+    ['/firmware', 'Firmware and rollouts'],
     ['/alerts', 'Alerts'],
   ])('%s renders its screen', async (path, heading) => {
     signInAs('viewer');

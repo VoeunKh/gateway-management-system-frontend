@@ -65,7 +65,7 @@ export function OverviewPage() {
           <FirmwareSplit models={o.models} />
           <div class="overview-grid__stack">
             <RolloutMini count={o.active_rollouts} />
-            <AlertsPreview count={o.open_alerts} />
+            <AlertsPreview />
           </div>
         </div>
       </>

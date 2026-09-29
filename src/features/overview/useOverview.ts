@@ -1,10 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ackAlert, getOverview, listAlerts, listDevices, listRollouts } from '@/api/endpoints';
+import { useQuery } from '@tanstack/react-query';
+import { getOverview, listDevices, listRollouts } from '@/api/endpoints';
 import type { Schemas } from '@/api/endpoints';
 import { POLL_MS } from '@/api/polling';
-import { useToast } from '@/ui';
 
-export const PREVIEW_LIMIT = 5;
 const BOARD_PAGE = 200;
 
 /** Fleet counts and the firmware mix, polled while the tab is visible. */
@@ -43,29 +41,5 @@ export function useActiveRollouts(count: number) {
     queryFn: () => listRollouts({ state: 'active' }),
     enabled: count > 0,
     refetchInterval: POLL_MS.overview,
-  });
-}
-
-/** The newest open alerts, fetched only while the overview counts any. */
-export function useOpenAlerts(count: number) {
-  return useQuery({
-    queryKey: ['alerts', 'open', PREVIEW_LIMIT],
-    queryFn: () => listAlerts({ state: 'open', limit: PREVIEW_LIMIT }),
-    enabled: count > 0,
-    refetchInterval: POLL_MS.alerts,
-  });
-}
-
-/** Acknowledge an alert, then refresh everything that lists alerts. */
-export function useAckAlert() {
-  const client = useQueryClient();
-  const toast = useToast();
-  return useMutation({
-    mutationFn: (alert: Schemas['Alert']) => ackAlert(alert.id),
-    onSuccess: (alert) => {
-      toast({ message: `Acknowledged the alert on ${alert.sn}`, tone: 'ok' });
-      return client.invalidateQueries({ queryKey: ['alerts'] });
-    },
-    onError: (error) => toast({ message: `Not acknowledged: ${error.message}`, tone: 'danger' }),
   });
 }
